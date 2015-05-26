@@ -40,7 +40,7 @@ svn co https://svn.aps.anl.gov/cdb/releases/2.0 2.0
 2) go to new release area and make sure code builds
 make dist
 
-3) recreate db
+3) recreate db (optional)
 make db
 
 4) deploy web service 
