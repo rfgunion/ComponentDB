@@ -129,13 +129,17 @@ public class DesignController extends CdbEntityController<Design, DesignDbFacade
         return super.getAvailableItems();
     }
 
-    @Override
-    public void prepareEntityView(Design design) {
+    void prepareDesignElementListTreeTable(Design design) {
         try {
             designElementListTreeTableRootNode = DesignElementUtility.createDesignElementRoot(design);
         } catch (CdbException ex) {
             logger.warn("Could not create design element list for tree view: " + ex.toString());
-        }
+        }        
+    }
+    
+    @Override
+    public void prepareEntityView(Design design) {
+        prepareDesignElementListTreeTable(design);
     }
 
     @Override
