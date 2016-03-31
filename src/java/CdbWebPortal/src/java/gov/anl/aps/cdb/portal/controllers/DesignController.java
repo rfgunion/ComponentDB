@@ -68,10 +68,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
     private static final String DisplayPropertyTypeId3SettingTypeKey = "Design.List.Display.PropertyTypeId3";
     private static final String DisplayPropertyTypeId4SettingTypeKey = "Design.List.Display.PropertyTypeId4";
     private static final String DisplayPropertyTypeId5SettingTypeKey = "Design.List.Display.PropertyTypeId5";
-    private static final String DisplayRowExpansionSettingTypeKey = "Design.List.Display.RowExpansion";
-    private static final String DisplayDesignElementRowExpansionSettingTypeKey = "Design.List.Display.DesignElement.RowExpansion";
-    private static final String LoadRowExpansionPropertyValueSettingTypeKey = "Design.List.Load.RowExpansionPropertyValue";
-    private static final String LoadDesignElementRowExpansionPropertyValueSettingTypeKey = "Design.List.Load.DesignElement.RowExpansionPropertyValue";
     private static final String FilterByNameSettingTypeKey = "Design.List.FilterBy.Name";
     private static final String FilterByDescriptionSettingTypeKey = "Design.List.FilterBy.Description";
     private static final String FilterByOwnerUserSettingTypeKey = "Design.List.FilterBy.OwnerUser";
@@ -91,9 +87,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
     private static final Logger logger = Logger.getLogger(DesignController.class.getName());
    
     private TreeNode designElementListTreeTableRootNode = null;
-    
-    private Boolean loadDesignElementRowExpansionPropertyValues = null; 
-    private Boolean displayDesignElementRowExpansion = null; 
 
     private List<PropertyValue> filteredPropertyValueList;
 
@@ -135,11 +128,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
     @Override
     public String getEntityTypeName() {
         return "design";
-    }
-   
-    @Override
-    public String getDisplayEntityTypeName() {
-        return "Design";
     }
 
     @Override
@@ -322,7 +310,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
 
     @Override
     public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
-        super.updateSettingsFromSettingTypeDefaults(settingTypeMap);
         if (settingTypeMap == null) {
             return;
         }
@@ -336,11 +323,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
         displayCreatedOnDateTime = Boolean.parseBoolean(settingTypeMap.get(DisplayCreatedOnDateTimeSettingTypeKey).getDefaultValue());
         displayLastModifiedByUser = Boolean.parseBoolean(settingTypeMap.get(DisplayLastModifiedByUserSettingTypeKey).getDefaultValue());
         displayLastModifiedOnDateTime = Boolean.parseBoolean(settingTypeMap.get(DisplayLastModifiedOnDateTimeSettingTypeKey).getDefaultValue());
-        
-        displayRowExpansion = Boolean.parseBoolean(settingTypeMap.get(DisplayRowExpansionSettingTypeKey).getDefaultValue());
-        displayDesignElementRowExpansion = Boolean.parseBoolean(settingTypeMap.get(DisplayDesignElementRowExpansionSettingTypeKey).getDefaultValue());
-        loadRowExpansionPropertyValues = Boolean.parseBoolean(settingTypeMap.get(LoadRowExpansionPropertyValueSettingTypeKey).getDefaultValue());
-        loadDesignElementRowExpansionPropertyValues = Boolean.parseBoolean(settingTypeMap.get(LoadDesignElementRowExpansionPropertyValueSettingTypeKey).getDefaultValue());
 
         displayPropertyTypeId1 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId1SettingTypeKey).getDefaultValue());
         displayPropertyTypeId2 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId2SettingTypeKey).getDefaultValue());
@@ -371,7 +353,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
 
     @Override
     public void updateSettingsFromSessionUser(UserInfo sessionUser) {
-        super.updateSettingsFromSessionUser(sessionUser);
         if (sessionUser == null) {
             return;
         }
@@ -385,11 +366,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
         displayCreatedOnDateTime = sessionUser.getUserSettingValueAsBoolean(DisplayCreatedOnDateTimeSettingTypeKey, displayCreatedOnDateTime);
         displayLastModifiedByUser = sessionUser.getUserSettingValueAsBoolean(DisplayLastModifiedByUserSettingTypeKey, displayLastModifiedByUser);
         displayLastModifiedOnDateTime = sessionUser.getUserSettingValueAsBoolean(DisplayLastModifiedOnDateTimeSettingTypeKey, displayLastModifiedOnDateTime);
-        
-        displayRowExpansion = sessionUser.getUserSettingValueAsBoolean(DisplayRowExpansionSettingTypeKey, displayRowExpansion);
-        displayDesignElementRowExpansion = sessionUser.getUserSettingValueAsBoolean(DisplayDesignElementRowExpansionSettingTypeKey, displayDesignElementRowExpansion);
-        loadRowExpansionPropertyValues = sessionUser.getUserSettingValueAsBoolean(LoadRowExpansionPropertyValueSettingTypeKey, loadRowExpansionPropertyValues);
-        loadDesignElementRowExpansionPropertyValues = sessionUser.getUserSettingValueAsBoolean(LoadDesignElementRowExpansionPropertyValueSettingTypeKey, loadDesignElementRowExpansionPropertyValues);
 
         displayPropertyTypeId1 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId1SettingTypeKey, displayPropertyTypeId1);
         displayPropertyTypeId2 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId2SettingTypeKey, displayPropertyTypeId2);
@@ -421,7 +397,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
 
     @Override
     public void saveSettingsForSessionUser(UserInfo sessionUser) {
-        super.saveSettingsForSessionUser(sessionUser);
         if (sessionUser == null) {
             return;
         }
@@ -435,18 +410,13 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
         sessionUser.setUserSettingValue(DisplayCreatedOnDateTimeSettingTypeKey, displayCreatedOnDateTime);
         sessionUser.setUserSettingValue(DisplayLastModifiedByUserSettingTypeKey, displayLastModifiedByUser);
         sessionUser.setUserSettingValue(DisplayLastModifiedOnDateTimeSettingTypeKey, displayLastModifiedOnDateTime);
-        
-        sessionUser.setUserSettingValue(DisplayRowExpansionSettingTypeKey, displayRowExpansion);
-        sessionUser.setUserSettingValue(DisplayDesignElementRowExpansionSettingTypeKey, displayDesignElementRowExpansion);
-        sessionUser.setUserSettingValue(LoadRowExpansionPropertyValueSettingTypeKey, loadRowExpansionPropertyValues);
-        sessionUser.setUserSettingValue(LoadDesignElementRowExpansionPropertyValueSettingTypeKey, loadDesignElementRowExpansionPropertyValues);
 
         sessionUser.setUserSettingValue(DisplayPropertyTypeId1SettingTypeKey, displayPropertyTypeId1);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId2SettingTypeKey, displayPropertyTypeId2);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId3SettingTypeKey, displayPropertyTypeId3);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId4SettingTypeKey, displayPropertyTypeId4);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId5SettingTypeKey, displayPropertyTypeId5);
-        
+
         sessionUser.setUserSettingValue(FilterByNameSettingTypeKey, filterByName);
         sessionUser.setUserSettingValue(FilterByDescriptionSettingTypeKey, filterByDescription);
         sessionUser.setUserSettingValue(FilterByOwnerUserSettingTypeKey, filterByOwnerUser);
@@ -540,22 +510,6 @@ public class DesignController extends CdbAbstractDomainEntityController<Design, 
 
     public void setFilteredPropertyValueList(List<PropertyValue> filteredPropertyValueList) {
         this.filteredPropertyValueList = filteredPropertyValueList;
-    }
-
-    public Boolean getLoadDesignElementRowExpansionPropertyValues() {
-        return loadDesignElementRowExpansionPropertyValues;
-    }
-
-    public void setLoadDesignElementRowExpansionPropertyValues(Boolean loadDesignElementRowExpansionPropertyValues) {
-        this.loadDesignElementRowExpansionPropertyValues = loadDesignElementRowExpansionPropertyValues;
-    }
-
-    public Boolean getDisplayDesignElementRowExpansion() {
-        return displayDesignElementRowExpansion;
-    }
-
-    public void setDisplayDesignElementRowExpansion(Boolean displayDesignElementRowExpansion) {
-        this.displayDesignElementRowExpansion = displayDesignElementRowExpansion;
     }
 
     public TreeNode getDesignElementListTreeTableRootNode() {

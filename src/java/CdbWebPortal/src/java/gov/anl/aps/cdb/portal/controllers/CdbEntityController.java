@@ -1095,22 +1095,6 @@ public abstract class CdbEntityController<EntityType extends CdbEntity, FacadeTy
             return null;
         }
     }
-    
-    public void reloadCurrent() {
-        current = getEntityDbFacade().find(current.getId()); 
-    }
-    
-    public String inlineUpdate(){
-        String updateResult = update();
-        
-        // An error occured, reload the page with correct information. 
-        if (updateResult == null) {
-            reloadCurrent();
-            return view(); 
-        }
-        
-        return null; 
-    }
 
     /**
      * Prepare entity update when changes involve removing associated objects

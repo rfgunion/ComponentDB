@@ -32,7 +32,7 @@
                                  onstart="PF('loadingDialog').show()"
                                  onerror="PF('loadingDialog').hide()"
                                  action="#{componentInstanceController.selectLocation(locationController.selectedObject)}"
-                                 update="#{updateTarget}"
+                                 update="@form"
                                  oncomplete="PF('loadingDialog').hide();
                                              PF('componentInstanceLocationSelectDialogWidget').hide()" 
                                  icon="ui-icon-arrowreturnthick-1-w"
@@ -41,7 +41,7 @@
                                  onstart="PF('loadingDialog').show()"
                                  onerror="PF('loadingDialog').hide()"
                                  action="#{componentInstanceController.selectLocation(locationSelectTreeViewBean.selectedLocation)}"
-                                 update="#{updateTarget}"
+                                 update="@form"
                                  oncomplete="PF('loadingDialog').hide();
                                              PF('componentInstanceLocationSelectDialogWidget').hide()" 
                                  icon="ui-icon-arrowreturnthick-1-w"

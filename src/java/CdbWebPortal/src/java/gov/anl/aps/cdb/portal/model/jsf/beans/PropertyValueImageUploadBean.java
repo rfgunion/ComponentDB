@@ -10,6 +10,7 @@
 package gov.anl.aps.cdb.portal.model.jsf.beans;
 
 import gov.anl.aps.cdb.common.constants.CdbPropertyValue;
+import gov.anl.aps.cdb.common.exceptions.ImageProcessingFailed;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyValue;
 import gov.anl.aps.cdb.common.utilities.FileUtility;
 import gov.anl.aps.cdb.common.utilities.ImageUtility;
@@ -19,7 +20,6 @@ import gov.anl.aps.cdb.portal.model.db.beans.PropertyTypeDbFacade;
 import gov.anl.aps.cdb.portal.model.db.beans.PropertyTypeHandlerDbFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyType;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeHandler;
-import gov.anl.aps.cdb.portal.utilities.GalleryUtility;
 import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import gov.anl.aps.cdb.portal.utilities.StorageUtility;
 import java.io.File;
@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
@@ -55,8 +54,7 @@ public class PropertyValueImageUploadBean implements Serializable {
     private List<PropertyType> imageHandlerPropertyTypes;
     private PropertyType selectedPropertyType;
     private final String IMAGE_PROPERTY_TYPE_NAME = "Image";
-    private final List<Integer> uploadHashList = new ArrayList<>();
-
+    
     public UploadedFile getUploadedFile() {
         return uploadedFile;
     }
@@ -93,21 +91,31 @@ public class PropertyValueImageUploadBean implements Serializable {
                 InputStream input = localUploadedFile.getInputstream();
                 Files.copy(input, originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 logger.debug("Saved file: " + originalFile.toPath());
-
-                GalleryUtility.storeImagePreviews(originalFile);
-
+                byte[] originalData = Files.readAllBytes(originalFile.toPath());
+                byte[] thumbData = ImageUtility.resizeImage(originalData, StorageUtility.THUMBNAIL_IMAGE_SIZE, imageFormat);
+                String thumbFileName = originalFile.getAbsolutePath().replace(CdbPropertyValue.ORIGINAL_IMAGE_EXTENSION, CdbPropertyValue.THUMBNAIL_IMAGE_EXTENSION);
+                Path thumbPath = Paths.get(thumbFileName);
+                Files.write(thumbPath, thumbData);
+                byte[] scaledData;
+                if (ImageUtility.verifyImageSizeBigger(originalData, StorageUtility.SCALED_IMAGE_SIZE)) {
+                    scaledData = ImageUtility.resizeImage(originalData, StorageUtility.SCALED_IMAGE_SIZE, imageFormat);
+                } else {
+                    scaledData = originalData;
+                }
+                String scaledFileName = originalFile.getAbsolutePath().replace(CdbPropertyValue.ORIGINAL_IMAGE_EXTENSION, CdbPropertyValue.SCALED_IMAGE_EXTENSION);
+                Path scaledPath = Paths.get(scaledFileName);
+                Files.write(scaledPath, scaledData);
                 propertyValue.setValue(baseName);
                 logger.debug("Uploaded file name: " + localUploadedFile.getFileName());
                 SessionUtility.addInfoMessage("Success", "Uploaded file " + localUploadedFile.getFileName() + ".");
-
             }
-        } catch (IOException ex) {
+        } catch (IOException | ImageProcessingFailed ex) {
             logger.error(ex);
             SessionUtility.addErrorMessage("Error", ex.toString());
         }
     }
-    
-     public void upload(PropertyValue propertyValue) {
+
+    public void upload(PropertyValue propertyValue) {
         upload(propertyValue, null);
     }
 
@@ -155,7 +163,6 @@ public class PropertyValueImageUploadBean implements Serializable {
 
     public void handleFileUpload(FileUploadEvent event) {
         UploadedFile localUploadedFile = event.getFile();
-        uploadHashList.add(localUploadedFile.hashCode());
 
         if (cdbEntityController != null) {
             if (cdbEntityController instanceof CdbDomainEntityController) {
@@ -164,35 +171,9 @@ public class PropertyValueImageUploadBean implements Serializable {
                 this.upload(propertyValue, localUploadedFile);
             }
         }
-
-        int removeIndex = uploadHashList.indexOf(localUploadedFile.hashCode());
-        uploadHashList.remove(removeIndex);
     }
-
+    
     public void handleSingleFileUpload(FileUploadEvent event) {
         this.uploadedFile = event.getFile();
-    }
-
-    /**
-     * Called when user is done uploading multiple images. 
-     * Checks to make sure all downloads have completed before saving.
-     *
-     * @throws InterruptedException
-     */
-    public void done() throws InterruptedException {
-        while (true) {
-            if (uploadHashList.isEmpty()) {
-                if (cdbEntityController != null) {
-                    if (cdbEntityController instanceof CdbDomainEntityController) {
-                        cdbEntityController.update();
-                        return;
-                    }
-                }
-            }
-
-            // List is not empty, wait and check again... 
-            Thread.sleep(500);
-
-        }
     }
 }

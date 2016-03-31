@@ -6,9 +6,7 @@
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui">
 
-    <ui:param name="renderActionColumn" value="#{viewMode != 'rowExpansion' and viewMode != 'inViewRowExpansion'}" />
-    <ui:param name="entityTypeName" value="#{entityController.entityTypeName}" />
-    <ui:param name="entityTypeDisplayName" value="#{entityController.displayEntityTypeName}" />
+    <ui:param name="renderActionColumn" value="#{viewMode != 'rowExpansion'}" />
 
     <p:dataTable id="#{entityTypeName}PropertyListDataTable" 
                  widgetVar="#{entityTypeName}PropertyListDataTableWidget"
@@ -19,14 +17,14 @@
                  rows="#{propertyValueController.displayNumberOfItemsPerPage}"
                  paginator="true" 
                  paginatorAlwaysVisible="false"
-                 emptyMessage="No #{entityTypeDisplayName} properties found.">
+                 emptyMessage="No #{entityTypeName} properties found.">
 
         <ui:include src="../../propertyValue/private/propertyValueListObject.xhtml">
             <ui:param name="entityPropertyTypeName" value="#{entityTypeName}Property"/>
         </ui:include>
 
         <p:column headerText="Actions" exportable="false" rendered="#{renderActionColumn}">
-            <div>
+            <div class="actionLink">
                 <p:commandLink id="#{entityTypeName}PropertyValueHistoryListViewButton" 
                                onstart="PF('loadingDialog').show();"
                                oncomplete="PF('loadingDialog').hide();

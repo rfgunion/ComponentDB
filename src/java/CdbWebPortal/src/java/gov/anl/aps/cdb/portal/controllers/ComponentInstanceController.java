@@ -72,8 +72,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
     private static final String DisplayPropertyTypeId5SettingTypeKey = "ComponentInstance.List.Display.PropertyTypeId5";
     private static final String DisplayQrIdSettingTypeKey = "ComponentInstance.List.Display.QrId";
     private static final String DisplaySerialNumberSettingTypeKey = "ComponentInstance.List.Display.SerialNumber";
-    private static final String DisplayRowExpansionSettingTypeKey = "ComponentInstance.List.Display.RowExpansion";
-    private static final String LoadRowExpansionPropertyValueSettingTypeKey = "ComponentInstance.List.Load.RowExpansionPropertyValue";
     private static final String FilterByComponentSettingTypeKey = "ComponentInstance.List.FilterBy.Component";
     private static final String FilterByCreatedByUserSettingTypeKey = "ComponentInstance.List.FilterBy.CreatedByUser";
     private static final String FilterByCreatedOnDateTimeSettingTypeKey = "ComponentInstance.List.FilterBy.CreatedOnDateTime";
@@ -174,7 +172,7 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
 
     @Override
     public String getDisplayEntityTypeName() {
-        return "Component Instance";
+        return "component instance";
     }
 
     @Override
@@ -395,7 +393,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
 
     @Override
     public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
-        super.updateSettingsFromSettingTypeDefaults(settingTypeMap);
         if (settingTypeMap == null) {
             return;
         }
@@ -414,9 +411,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
 
         displayQrId = Boolean.parseBoolean(settingTypeMap.get(DisplayQrIdSettingTypeKey).getDefaultValue());
         displaySerialNumber = Boolean.parseBoolean(settingTypeMap.get(DisplaySerialNumberSettingTypeKey).getDefaultValue());
-        
-        displayRowExpansion = Boolean.parseBoolean(settingTypeMap.get(DisplayRowExpansionSettingTypeKey).getDefaultValue());
-        loadRowExpansionPropertyValues = Boolean.parseBoolean(settingTypeMap.get(LoadRowExpansionPropertyValueSettingTypeKey).getDefaultValue());
 
         displayPropertyTypeId1 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId1SettingTypeKey).getDefaultValue());
         displayPropertyTypeId2 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId2SettingTypeKey).getDefaultValue());
@@ -454,7 +448,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
 
     @Override
     public void updateSettingsFromSessionUser(UserInfo sessionUser) {
-        super.updateSettingsFromSessionUser(sessionUser);
         if (sessionUser == null) {
             return;
         }
@@ -473,9 +466,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
         displayQrId = sessionUser.getUserSettingValueAsBoolean(DisplayQrIdSettingTypeKey, displayQrId);
         displaySerialNumber = sessionUser.getUserSettingValueAsBoolean(DisplaySerialNumberSettingTypeKey, displaySerialNumber);
 
-        displayRowExpansion = sessionUser.getUserSettingValueAsBoolean(DisplayRowExpansionSettingTypeKey, displayRowExpansion);
-        loadRowExpansionPropertyValues = sessionUser.getUserSettingValueAsBoolean(LoadRowExpansionPropertyValueSettingTypeKey, loadRowExpansionPropertyValues);
-        
         displayPropertyTypeId1 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId1SettingTypeKey, displayPropertyTypeId1);
         displayPropertyTypeId2 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId2SettingTypeKey, displayPropertyTypeId2);
         displayPropertyTypeId3 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId3SettingTypeKey, displayPropertyTypeId3);
@@ -534,7 +524,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
 
     @Override
     public void saveSettingsForSessionUser(UserInfo sessionUser) {
-        super.saveSettingsForSessionUser(sessionUser);
         if (sessionUser == null) {
             return;
         }
@@ -552,9 +541,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
         sessionUser.setUserSettingValue(DisplayLocationDetailsSettingTypeKey, displayLocationDetails);
         sessionUser.setUserSettingValue(DisplayQrIdSettingTypeKey, displayQrId);
         sessionUser.setUserSettingValue(DisplaySerialNumberSettingTypeKey, displaySerialNumber);
-        
-        sessionUser.setUserSettingValue(DisplayRowExpansionSettingTypeKey, displayRowExpansion);
-        sessionUser.setUserSettingValue(LoadRowExpansionPropertyValueSettingTypeKey, loadRowExpansionPropertyValues);
 
         sessionUser.setUserSettingValue(DisplayPropertyTypeId1SettingTypeKey, displayPropertyTypeId1);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId2SettingTypeKey, displayPropertyTypeId2);
@@ -662,9 +648,6 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
     }
 
     public List<Location> completeLocation(String query) {
-        if (locationList == null) {
-            locationList = locationFacade.findAll();
-        }
         return LocationUtility.filterLocation(query, locationList);
     }
 
@@ -810,10 +793,10 @@ public class ComponentInstanceController extends CdbDomainEntityController<Compo
         if (componentInstance == null) {
             return null;
         }
-        List<PropertyValue> componentInstanceImageList = PropertyValueUtility.prepareImagePropertyValueList(componentInstance.getPropertyValueList(), getDisplayGalleryViewableDocuments());
+        List<PropertyValue> componentInstanceImageList = PropertyValueUtility.prepareImagePropertyValueList(componentInstance.getPropertyValueList());
         Component component = componentInstance.getComponent();
         if (component != null) {
-            List<PropertyValue> componentImageList = PropertyValueUtility.prepareImagePropertyValueList(component.getPropertyValueList(), getDisplayGalleryViewableDocuments());
+            List<PropertyValue> componentImageList = PropertyValueUtility.prepareImagePropertyValueList(component.getPropertyValueList());
             componentInstanceImageList.addAll(componentImageList);
         }
         componentInstance.setImagePropertyList(componentInstanceImageList);

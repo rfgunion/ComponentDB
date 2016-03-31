@@ -9,27 +9,18 @@
     <p:panelGrid columns="2" styleClass="viewEntityDetails">
 
         <h:outputLabel for="name" value="Name" styleClass="entityDataEmphasizedLabel"/>
-        <p:inplace id="name" editor="#{isEntityWriteable}" toggleable="#{isEntityWriteable}" emptyLabel="-" styleClass="entityDataEmphasizedText">
-            <p:ajax event="save" oncomplete="inlineSaveEntity()"/>
-            <p:inputText value="#{designObject.name}" title="Name" styleClass="entityDataEmphasizedText"/>
-        </p:inplace>
+        <h:outputText id="name" value="#{designObject.name}" title="Name" styleClass="entityDataEmphasizedText"/>
 
         <h:outputLabel for="description" value="Description" styleClass="entityDataLabel"/>
-        <p:inplace id="description" 
-                   editor="#{isEntityWriteable}" 
-                   toggleable="#{isEntityWriteable}" 
-                   emptyLabel="-"
-                   styleClass="entityDataText">
-            <p:ajax event="save" oncomplete="inlineSaveEntity()"/>
-            <h:inputTextarea value="#{designObject.description}" title="Description" styleClass="entityDataText"/>
-        </p:inplace>
+        <h:outputText id="description" value="#{designObject.description}" title="Description" styleClass="entityDataText"/>
 
+        <h:outputLabel for="id" value="Id" styleClass="entityDataLabel"/>
+        <h:outputText id="id" value="#{designObject.id}" title="Id" styleClass="entityDataText"/>
+
+        <ui:include src="../../entityInfo/private/entityInfoViewObject.xhtml">
+            <ui:param name="entityInfoObject" value="#{designObject.entityInfo}"/>
+        </ui:include>
     </p:panelGrid>
-    
-    <p:remoteCommand name="inlineSaveEntity"
-                     action="#{entityController.inlineUpdate()}"
-                     />
-
 
 
 </ui:composition>

@@ -83,11 +83,7 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
     private static final String DisplayPropertyTypeId3SettingTypeKey = "DesignElement.List.Display.PropertyTypeId3";
     private static final String DisplayPropertyTypeId4SettingTypeKey = "DesignElement.List.Display.PropertyTypeId4";
     private static final String DisplayPropertyTypeId5SettingTypeKey = "DesignElement.List.Display.PropertyTypeId5";
-    private static final String DisplayParentDesignRowColorTypeKey="DesignElement.List.Display.RowColor"; 
-    private static final String DisplayBillOfMaterialsActionColumnTypeKey = "DesignElement.List.Display.BillOfMaterialsActionColumn";
-    private static final String DisplayRowExpansionSettingTypeKey = "DesignElement.List.Display.RowExpansion";
-    private static final String LoadRowExpansionPropertyValueSettingTypeKey = "DesignElement.List.Load.RowExpansionPropertyValue";
-    private static final String SortByPropertyTypeIdSettingTypeKey = "DesignElement.List.SortBy.PropertyTypeId"; 
+    private static final String DisplayParentDesignRowColor="DesignElement.List.Display.RowColor"; 
     private static final String FilterByChildDesignSettingTypeKey = "DesignElement.List.FilterBy.ChildDesign";
     private static final String FilterByComponentSettingTypeKey = "DesignElement.List.FilterBy.Component";
     private static final String FilterByComponentTypeSettingTypeKey = "DesignElement.List.FilterBy.ComponentType";
@@ -125,9 +121,6 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
     private Boolean displayLocation = null;
     private Boolean displaySortOrder = null;
     private Boolean displayParentDesignRowColor = null; 
-    private Boolean displayBillOfMaterialsActionColumn = null; 
-    
-    private Integer sortByPropertyTypeId = null;
 
     private String filterByChildDesign = null;
     private String filterByComponent = null;
@@ -191,7 +184,7 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
 
     @Override
     public String getDisplayEntityTypeName() {
-        return "Design Element";
+        return "design element";
     }
 
     @Override
@@ -276,11 +269,6 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
 
     @Override
     public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
-        super.updateSettingsFromSettingTypeDefaults(settingTypeMap);
-        if (settingTypeMap == null) {
-            return;
-        }
-        
         displayNumberOfItemsPerPage = Integer.parseInt(settingTypeMap.get(DisplayNumberOfItemsPerPageSettingTypeKey).getDefaultValue());
         displayId = Boolean.parseBoolean(settingTypeMap.get(DisplayIdSettingTypeKey).getDefaultValue());
         displayDescription = Boolean.parseBoolean(settingTypeMap.get(DisplayDescriptionSettingTypeKey).getDefaultValue());
@@ -292,25 +280,19 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
         displayLastModifiedByUser = Boolean.parseBoolean(settingTypeMap.get(DisplayLastModifiedByUserSettingTypeKey).getDefaultValue());
         displayLastModifiedOnDateTime = Boolean.parseBoolean(settingTypeMap.get(DisplayLastModifiedOnDateTimeSettingTypeKey).getDefaultValue());
         
-        displayRowExpansion = Boolean.parseBoolean(settingTypeMap.get(DisplayRowExpansionSettingTypeKey).getDefaultValue()); 
-        loadRowExpansionPropertyValues = Boolean.parseBoolean(settingTypeMap.get(LoadRowExpansionPropertyValueSettingTypeKey).getDefaultValue());
-        
         displayPropertyTypeId1 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId1SettingTypeKey).getDefaultValue());
         displayPropertyTypeId2 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId2SettingTypeKey).getDefaultValue());
         displayPropertyTypeId3 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId3SettingTypeKey).getDefaultValue());
         displayPropertyTypeId4 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId4SettingTypeKey).getDefaultValue());
         displayPropertyTypeId5 = parseSettingValueAsInteger(settingTypeMap.get(DisplayPropertyTypeId5SettingTypeKey).getDefaultValue());
 
-        sortByPropertyTypeId = parseSettingValueAsInteger(settingTypeMap.get(SortByPropertyTypeIdSettingTypeKey).getDefaultValue()); 
-        
         displayChildDesign = Boolean.parseBoolean(settingTypeMap.get(DisplayChildDesignSettingTypeKey).getDefaultValue());
         displayComponent = Boolean.parseBoolean(settingTypeMap.get(DisplayComponentSettingTypeKey).getDefaultValue());
         displayComponentType = Boolean.parseBoolean(settingTypeMap.get(DisplayComponentTypeSettingTypeKey).getDefaultValue());
         displayLocation = Boolean.parseBoolean(settingTypeMap.get(DisplayLocationSettingTypeKey).getDefaultValue());
         displaySortOrder = Boolean.parseBoolean(settingTypeMap.get(DisplaySortOrderSettingTypeKey).getDefaultValue());
-        displayParentDesignRowColor = Boolean.parseBoolean(settingTypeMap.get(DisplayParentDesignRowColorTypeKey).getDefaultValue()); 
-        displayBillOfMaterialsActionColumn = Boolean.parseBoolean(settingTypeMap.get(DisplayBillOfMaterialsActionColumnTypeKey).getDefaultValue());
-        
+        displayParentDesignRowColor = Boolean.parseBoolean(settingTypeMap.get(DisplayParentDesignRowColor).getDefaultValue()); 
+
         filterByName = settingTypeMap.get(FilterByNameSettingTypeKey).getDefaultValue();
         filterByDescription = settingTypeMap.get(FilterByDescriptionSettingTypeKey).getDefaultValue();
         filterByOwnerUser = settingTypeMap.get(FilterByOwnerUserSettingTypeKey).getDefaultValue();
@@ -331,11 +313,6 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
 
     @Override
     public void updateSettingsFromSessionUser(UserInfo sessionUser) {
-        super.updateSettingsFromSessionUser(sessionUser);
-        if (settingTypeMap == null) {
-            return;
-        }
-        
         displayNumberOfItemsPerPage = sessionUser.getUserSettingValueAsInteger(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
         displayId = sessionUser.getUserSettingValueAsBoolean(DisplayIdSettingTypeKey, displayId);
         displayDescription = sessionUser.getUserSettingValueAsBoolean(DisplayDescriptionSettingTypeKey, displayDescription);
@@ -347,24 +324,18 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
         displayLastModifiedByUser = sessionUser.getUserSettingValueAsBoolean(DisplayLastModifiedByUserSettingTypeKey, displayLastModifiedByUser);
         displayLastModifiedOnDateTime = sessionUser.getUserSettingValueAsBoolean(DisplayLastModifiedOnDateTimeSettingTypeKey, displayLastModifiedOnDateTime);
         
-        displayRowExpansion = sessionUser.getUserSettingValueAsBoolean(DisplayRowExpansionSettingTypeKey, displayRowExpansion);
-        loadRowExpansionPropertyValues = sessionUser.getUserSettingValueAsBoolean(LoadRowExpansionPropertyValueSettingTypeKey, loadRowExpansionPropertyValues);
-        
         displayPropertyTypeId1 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId1SettingTypeKey, displayPropertyTypeId1);
         displayPropertyTypeId2 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId2SettingTypeKey, displayPropertyTypeId2);
         displayPropertyTypeId3 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId3SettingTypeKey, displayPropertyTypeId3);
         displayPropertyTypeId4 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId4SettingTypeKey, displayPropertyTypeId4);
         displayPropertyTypeId5 = sessionUser.getUserSettingValueAsInteger(DisplayPropertyTypeId5SettingTypeKey, displayPropertyTypeId5);
-        
-        sortByPropertyTypeId = sessionUser.getUserSettingValueAsInteger(SortByPropertyTypeIdSettingTypeKey, sortByPropertyTypeId); 
 
         displayChildDesign = sessionUser.getUserSettingValueAsBoolean(DisplayChildDesignSettingTypeKey, displayChildDesign);
         displayComponent = sessionUser.getUserSettingValueAsBoolean(DisplayComponentSettingTypeKey, displayComponent);
         displayComponentType = sessionUser.getUserSettingValueAsBoolean(DisplayComponentTypeSettingTypeKey, displayComponentType);
         displayLocation = sessionUser.getUserSettingValueAsBoolean(DisplayLocationSettingTypeKey, displayLocation);
         displaySortOrder = sessionUser.getUserSettingValueAsBoolean(DisplaySortOrderSettingTypeKey, displaySortOrder);
-        displayParentDesignRowColor = sessionUser.getUserSettingValueAsBoolean(DisplayParentDesignRowColorTypeKey, displayParentDesignRowColor);
-        displayBillOfMaterialsActionColumn = sessionUser.getUserSettingValueAsBoolean(DisplayBillOfMaterialsActionColumnTypeKey, displayBillOfMaterialsActionColumn);
+        displayParentDesignRowColor = sessionUser.getUserSettingValueAsBoolean(DisplayParentDesignRowColor, displayParentDesignRowColor);
         
         filterByName = sessionUser.getUserSettingValueAsString(FilterByNameSettingTypeKey, filterByName);
         filterByDescription = sessionUser.getUserSettingValueAsString(FilterByDescriptionSettingTypeKey, filterByDescription);
@@ -382,12 +353,6 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
         filterBySortOrder = sessionUser.getUserSettingValueAsString(FilterBySortOrderSettingTypeKey, filterBySortOrder);
         
         resetDomainEntityPropertyTypeIdIndexMappings();
-    }
-    
-    @Override
-    public void resetDomainEntityPropertyTypeIdIndexMappings() {
-        super.resetDomainEntityPropertyTypeIdIndexMappings();
-        DesignElement.setSortByPropertyTypeId(sortByPropertyTypeId);
     }
 
     @Override
@@ -407,7 +372,6 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
 
     @Override
     public void saveSettingsForSessionUser(UserInfo sessionUser) {
-        super.saveSettingsForSessionUser(sessionUser);
         if (sessionUser == null) {
             return;
         }
@@ -423,25 +387,19 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
         sessionUser.setUserSettingValue(DisplayLastModifiedByUserSettingTypeKey, displayLastModifiedByUser);
         sessionUser.setUserSettingValue(DisplayLastModifiedOnDateTimeSettingTypeKey, displayLastModifiedOnDateTime);
         
-        sessionUser.setUserSettingValue(DisplayRowExpansionSettingTypeKey, displayRowExpansion);
-        sessionUser.setUserSettingValue(LoadRowExpansionPropertyValueSettingTypeKey, loadRowExpansionPropertyValues);
-        
         sessionUser.setUserSettingValue(DisplayPropertyTypeId1SettingTypeKey, displayPropertyTypeId1);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId2SettingTypeKey, displayPropertyTypeId2);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId3SettingTypeKey, displayPropertyTypeId3);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId4SettingTypeKey, displayPropertyTypeId4);
         sessionUser.setUserSettingValue(DisplayPropertyTypeId5SettingTypeKey, displayPropertyTypeId5);
-        
-        sessionUser.setUserSettingValue(SortByPropertyTypeIdSettingTypeKey, sortByPropertyTypeId);
 
         sessionUser.setUserSettingValue(DisplayChildDesignSettingTypeKey, displayChildDesign);
         sessionUser.setUserSettingValue(DisplayComponentSettingTypeKey, displayComponent);
         sessionUser.setUserSettingValue(DisplayComponentTypeSettingTypeKey, displayComponentType);
         sessionUser.setUserSettingValue(DisplayLocationSettingTypeKey, displayLocation);
         sessionUser.setUserSettingValue(DisplaySortOrderSettingTypeKey, displaySortOrder);
-        sessionUser.setUserSettingValue(DisplayParentDesignRowColorTypeKey, displayParentDesignRowColor);
-        sessionUser.setUserSettingValue(DisplayBillOfMaterialsActionColumnTypeKey, displayBillOfMaterialsActionColumn);
-        
+        sessionUser.setUserSettingValue(DisplayParentDesignRowColor, displayParentDesignRowColor);
+
         sessionUser.setUserSettingValue(FilterByNameSettingTypeKey, filterByName);
         sessionUser.setUserSettingValue(FilterByDescriptionSettingTypeKey, filterByDescription);
         sessionUser.setUserSettingValue(FilterByOwnerUserSettingTypeKey, filterByOwnerUser);
@@ -530,29 +488,13 @@ public class DesignElementController extends CdbDomainEntityController<DesignEle
         }
         return null; 
     }
-    
+
     public Boolean getDisplayParentDesignRowColor() {
         return displayParentDesignRowColor;
     }
 
     public void setDisplayParentDesignRowColor(Boolean displayParentDesignRowColor) {
         this.displayParentDesignRowColor = displayParentDesignRowColor;
-    }
-    
-    public Integer getSortByPropertyTypeId() {
-        return sortByPropertyTypeId;
-    }
-
-    public void setSortByPropertyTypeId(Integer sortByPropertyTypeId) {
-        this.sortByPropertyTypeId = sortByPropertyTypeId;
-    }
-
-    public Boolean getDisplayBillOfMaterialsActionColumn() {
-        return displayBillOfMaterialsActionColumn;
-    }
-
-    public void setDisplayBillOfMaterialsActionColumn(Boolean displayBillOfMaterialsActionColumn) {
-        this.displayBillOfMaterialsActionColumn = displayBillOfMaterialsActionColumn;
     }
 
     public Boolean getDisplayChildDesign() {

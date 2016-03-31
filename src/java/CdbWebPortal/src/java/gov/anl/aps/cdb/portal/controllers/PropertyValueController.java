@@ -252,6 +252,7 @@ public class PropertyValueController extends CdbEntityController<PropertyValue, 
         PropertyTypeHandlerInterface propertyTypeHandler = PropertyTypeHandlerFactory.getHandler(propertyValue);
         propertyTypeHandler.setInfoActionCommand(propertyValue);
         propertyTypeHandler.setDisplayValue(propertyValue);
+        String targetValue = propertyValue.getTargetValue();
         propertyTypeHandler.setTargetValue(propertyValue);
         PropertyType propertyType = propertyValue.getPropertyType();
         DisplayType displayType = propertyTypeHandler.getValueDisplayType();
@@ -321,15 +322,11 @@ public class PropertyValueController extends CdbEntityController<PropertyValue, 
     }
 
     public String getOriginalImageApplicationPath(PropertyValue propertyValue) {
-        return StorageUtility.getApplicationPropertyValueImagePath(propertyValue.getValue());   
+        return StorageUtility.getApplicationPropertyValueImagePath(propertyValue.getValue() + CdbPropertyValue.ORIGINAL_IMAGE_EXTENSION);   
     }
 
     public String getThumbnailImagePath(PropertyValue propertyValue) {
-        return StorageUtility.getPropertyValueImagePath(propertyValue.getValue(), CdbPropertyValue.THUMBNAIL_IMAGE_EXTENSION);   
-    }
-    
-    public String getScaledImagePath(PropertyValue propertyValue) {
-        return StorageUtility.getPropertyValueImagePath(propertyValue.getValue(), CdbPropertyValue.SCALED_IMAGE_EXTENSION); 
+        return StorageUtility.getPropertyValueImagePath(propertyValue.getValue() + CdbPropertyValue.THUMBNAIL_IMAGE_EXTENSION);   
     }
     
     /**

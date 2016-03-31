@@ -16,7 +16,6 @@ import gov.anl.aps.cdb.portal.model.db.entities.PropertyValue;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyValueHistory;
 import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerFactory;
 import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerInterface;
-import gov.anl.aps.cdb.portal.utilities.GalleryUtility;
 import gov.anl.aps.cdb.portal.utilities.SearchResult;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,31 +28,17 @@ import org.apache.log4j.Logger;
 public class PropertyValueUtility {
 
     private static final Logger logger = Logger.getLogger(PropertyValueUtility.class.getName());
-    
-    public static List<PropertyValue> prepareImagePropertyValueList(List<PropertyValue> propertyValueList) {
-        return prepareImagePropertyValueList(propertyValueList, false); 
-    }
 
-    public static List<PropertyValue> prepareImagePropertyValueList(List<PropertyValue> propertyValueList, Boolean addViewableDocuments) {
+    public static List<PropertyValue> prepareImagePropertyValueList(List<PropertyValue> propertyValueList) {
         List<PropertyValue> imagePropertyValueList = new ArrayList<>();
         if (propertyValueList != null) {
             for (PropertyValue propertyValue : propertyValueList) {
                 PropertyTypeHandlerInterface propertyTypeHandler = PropertyTypeHandlerFactory.getHandler(propertyValue);
                 DisplayType valueDisplayType = propertyTypeHandler.getValueDisplayType();
-                
-                Boolean loadCurrentPropertyValue; 
-                if (addViewableDocuments) {
-                    loadCurrentPropertyValue = (valueDisplayType == DisplayType.IMAGE || valueDisplayType == DisplayType.DOCUMENT); 
-                } else {
-                    loadCurrentPropertyValue = (valueDisplayType == DisplayType.IMAGE); 
-                }
-                
-                if (loadCurrentPropertyValue) {
+                if (valueDisplayType == DisplayType.IMAGE) {
                     String value = propertyValue.getValue();
-                    if (GalleryUtility.viewableFileName(value)) {
-                        if (value != null && !value.isEmpty()) {
-                            imagePropertyValueList.add(propertyValue);
-                        }
+                    if (value != null && !value.isEmpty()) {
+                        imagePropertyValueList.add(propertyValue);
                     }
                 }
             }

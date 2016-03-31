@@ -13,9 +13,7 @@
         <div class="dialog">
 
             <p:fileUpload fileUploadListener="#{propertyValueImageUploadBean.handleSingleFileUpload}"
-                          fileLimit="1" 
-                          allowTypes="/(\.|\/)(gif|jpe?g|png|pdf)$/"
-                          oncomplete="propertyValueImageUploadDialogFileUploadOnComplete()"/>
+                          fileLimit="1" oncomplete="propertyValueImageUploadDialogFileUploadOnComplete()"/>
             
             <p:remoteCommand name="propertyValueImageUploadDialogFileUploadOnComplete"
                              onstart="PF('loadingDialog').show();"

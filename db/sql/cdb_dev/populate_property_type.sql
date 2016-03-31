@@ -82,7 +82,6 @@ INSERT INTO `property_type` VALUES
 (80,'Critical Component','',10,10,'',''),
 (81,'Traveler Template (Electronic)','Allows integration of traveler templates from traveler application.',2,13,'',''),
 (82,'Traveler Instance (Electronic)','Allows integration of traveler instances from traveler application.',2,14,'',''),
-(83,'Design Element Row Color','',8,NULL,'',''),
-(84,'test','',NULL,9,'','');
+(83,'Design Element Row Color','',8,NULL,'','');
 /*!40000 ALTER TABLE `property_type` ENABLE KEYS */;
 UNLOCK TABLES;

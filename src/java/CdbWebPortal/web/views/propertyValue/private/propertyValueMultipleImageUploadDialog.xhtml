@@ -29,14 +29,12 @@
 
             <p:fileUpload fileUploadListener="#{propertyValueImageUploadBean.handleFileUpload}"
                           multiple="true"
-                          allowTypes="/(\.|\/)(gif|jpe?g|png|pdf)$/"
+                          allowTypes="/(\.|\/)(gif|jpe?g|png)$/"
                           />
 
             <f:facet name="footer" class="dialog">
-                <p:commandButton id="#{entityTypeName}PropertyValueImageUploadSubmitButton"
-                                 widgetVar="#{entityTypeName}PropertyValueImageUploadSubmitButtonWidget"
-                                 value="Done" alt="Done" 
-                                 action="#{propertyValueImageUploadBean.done()}"
+                <p:commandButton id="#{entityTypeName}PropertyValueImageUploadSubmitButton" value="Done" alt="Done" 
+                                 action="#{entityController.update()}"
                                  oncomplete="PF('propertyValueImageUploadDialogWidget').hide()" 
                                  update="@form"
                                  ajax="false"

@@ -5,10 +5,6 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-    <ui:param name="entityTypeName" value="#{entityController.entityTypeName}" />
-    <ui:param name="entityTypeDisplayName" value="#{entityController.displayEntityTypeName}" />
-    <ui:param name="renderActionColumn" value="#{viewMode != 'rowExpansion' and viewMode != 'inViewRowExpansion'}" />
-
     <p:dataTable id="#{entityTypeName}LogListDataTable"
                  widgetVar="#{entityTypeName}LogListDataTableWidget" 
                  var="logObject"
@@ -17,14 +13,14 @@
                  paginator="true" 
                  paginatorAlwaysVisible="false"
                  reflow="true"
-                 emptyMessage="No #{entityTypeDisplayName} log entries found."
+                 emptyMessage="No log entries found."
                  editable="true">
 
         <p:ajax event="rowEdit" listener="#{entityController.logObjectEditRowEvent(event)}" />
 
         <ui:include src="../../log/private/logListObject.xhtml"/>
 
-        <p:column headerText="Actions" rendered="#{renderActionColumn and isEntityWriteable}">
+        <p:column headerText="Actions" rendered="#{isEntityWriteable}">
             <p:rowEditor />
             <p:commandLink id="#{entityTypeName}LogUploadAttachmentButton" 
                            oncomplete="PF('logAttachmentUploadDialogWidget').show()" 

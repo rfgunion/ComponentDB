@@ -5,7 +5,7 @@
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui">
 
-    <ui:param name="designObject" value="#{designObject != null ? designObject : designController.current}"/>    
+    <ui:param name="designObject" value="#{designController.current}"/>    
     <ui:param name="breadcrumb" value="#{designElementController.currentViewId}"/>
     <ui:param name="breadcrumbObjectId" value="#{designObject.id}"/>  
     <p:dataTable id="designElementListDataTable" 
@@ -14,16 +14,13 @@
                  value="#{designObject.designElementList}" 
                  filteredValue="#{designElementController.filteredObjectList}"
                  rows="#{designElementController.displayNumberOfItemsPerPage}"
-                 sortBy="#{parentDesignElementObject.customizableSortOrder}"
-                 resizableColumns="true"
-                 liveResize="true"
                  paginator="true" 
                  paginatorAlwaysVisible="false"
                  emptyMessage="No design elements found."
                  rowStyleClass="#{designElementController.getDisplayRowColor(parentDesignElementObject)}">
 
         <p:column sortBy="#{parentDesignElementObject.name}" headerText="Element Name">
-            <p:rowToggler rendered="#{designElementController.displayRowExpansion}"/>
+            <p:rowToggler/>
             <h:outputText value="#{parentDesignElementObject.name}" />
         </p:column>
         
@@ -35,11 +32,9 @@
             <ui:param name="designElementObject" value="#{parentDesignElementObject}" />
         </ui:include>
            
-        <p:rowExpansion styleClass="domainEntityRowExpansion" rendered="#{designElementController.displayRowExpansion}">
+        <p:rowExpansion styleClass="designElementRowExpansion">
             <ui:include src="designElementListDataTableRowExpansion.xhtml">
                 <ui:param name="parentDesignElementObject" value="#{parentDesignElementObject}" />
-                <ui:param name="entityController" value="#{designElementController}" />
-                <ui:param name="viewMode" value="#{viewMode != null ? viewMode : 'inViewRowExpansion'}" />
             </ui:include>
         </p:rowExpansion>
        
