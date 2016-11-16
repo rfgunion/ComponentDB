@@ -2483,7 +2483,7 @@ public abstract class ItemController extends CdbDomainEntityController<Item, Ite
                         return null;
                     }
 
-                    return performItemRedirection(item, "qrId=" + qrIdViewParam, false);
+                    return performItemRedirection(item, "qrId=" + qrParam, false);
                 } catch (NumberFormatException ex) {
                     throw new InvalidRequest("Invalid value supplied for QR id: " + paramValue);
                 }
