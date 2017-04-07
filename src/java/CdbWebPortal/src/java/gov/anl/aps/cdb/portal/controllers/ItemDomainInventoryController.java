@@ -123,9 +123,6 @@ public class ItemDomainInventoryController extends ItemController {
     private Boolean displayLocationDetails = null;
     private Boolean displayLocation = null;
     private Boolean displaySerialNumber = null;
-    
-    // Set externally from item element controller
-    private Boolean displayItemElementListItemIdentifier1 = null; 
 
     private String filterByComponent = null;
     private String filterByLocation = null;
@@ -1165,7 +1162,7 @@ public class ItemDomainInventoryController extends ItemController {
         updateItemLocation(item);
     }
 
-    public String getInventoryItemAssemblyRowExpansionDisplayString(ItemElement itemElement) {
+    public String getInventoryItemElementDisplayString(ItemElement itemElement) {
         if (itemElement != null) {
             if (itemElement.getContainedItem() != null) {
                 return getItemDisplayString(itemElement.getContainedItem());
@@ -1493,7 +1490,6 @@ public class ItemDomainInventoryController extends ItemController {
         displayListDataModelScope = settingTypeMap.get(DisplayListDataModelScopeSettingTypeKey).getDefaultValue();
         displayListDataModelScopePropertyTypeId = parseSettingValueAsInteger(settingTypeMap.get(DisplayListDataModelScopePropertyTypeIdSettingTypeKey).getDefaultValue());
         
-        displayItemElementListItemIdentifier1 = Boolean.parseBoolean(settingTypeMap.get(DisplayItemElementListItemIdentifier1SettingTypeKey).getDefaultValue()); 
         autoLoadListFilterValues = Boolean.parseBoolean(settingTypeMap.get(AutoLoadListFilterValuesSettingTypeKey).getDefaultValue()); 
 
         resetDomainEntityPropertyTypeIdIndexMappings();
@@ -1562,7 +1558,6 @@ public class ItemDomainInventoryController extends ItemController {
         displayListDataModelScope = settingEntity.getSettingValueAsString(DisplayListDataModelScopeSettingTypeKey, displayListDataModelScope);
         displayListDataModelScopePropertyTypeId = settingEntity.getSettingValueAsInteger(DisplayListDataModelScopePropertyTypeIdSettingTypeKey, displayListDataModelScopePropertyTypeId);
         
-        displayItemElementListItemIdentifier1 = settingEntity.getSettingValueAsBoolean(DisplayItemElementListItemIdentifier1SettingTypeKey, displayItemElementListItemIdentifier1); 
         autoLoadListFilterValues = settingEntity.getSettingValueAsBoolean(AutoLoadListFilterValuesSettingTypeKey, autoLoadListFilterValues); 
 
         resetDomainEntityPropertyTypeIdIndexMappings();
@@ -1657,16 +1652,6 @@ public class ItemDomainInventoryController extends ItemController {
     @Override
     public String getDisplayItemElementListItemIdentifier1Key() {
         return DisplayItemElementListItemIdentifier1SettingTypeKey; 
-    } 
-    
-    @Override
-    public Boolean getDisplayItemElementListItemIdentifier1() {
-        return displayItemElementListItemIdentifier1; 
-    }
-
-    @Override
-    public void setDisplayItemElementListItemIdentifier1(Boolean displayItemElementListItemIdentifier1) {
-        this.displayItemElementListItemIdentifier1 = displayItemElementListItemIdentifier1;
     }
 
     @Override
