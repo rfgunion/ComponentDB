@@ -24,9 +24,13 @@
         <h:outputText value="#{propertyValueHistoryObject.value}"
                       rendered="#{propertyValueHistoryController.displayTextValue()}"/>
 
-        <p:graphicImage value="/propertyValue/images/#{propertyValueHistoryObject.value}.thumbnail" 
-                        alt="#{propertyValueHistoryObject.value}" title="#{propertyValueHistoryObject.value}"
-                        rendered="#{propertyValueHistoryController.displayImageValue()}"/>
+        <h:outputLink value="#{propertyValueHistoryController.getOriginalImageApplicationPath(propertyValueHistoryObject)}" 
+                      target="_page_#{propertyValueHistoryObject.targetValue}" title="#{propertyValueHistoryObject.targetValue}"
+                      rendered="#{propertyValueHistoryController.displayImageValue()}">
+            <p:graphicImage value="#{propertyValueHistoryController.getThumbnailImagePath(propertyValueHistoryObject)}" 
+                            alt="#{propertyValueHistoryObject.value}" title="#{propertyValueHistoryObject.value}"
+                            rendered="#{propertyValueHistoryController.displayImageValue()}"/>
+        </h:outputLink>
 
         <h:outputLink value="#{propertyValueHistoryObject.targetValue}" target="_page_#{propertyValueHistoryObject.targetValue}" 
                       title="#{propertyValueHistoryObject.targetValue}"
@@ -38,7 +42,15 @@
                       title="#{propertyValueHistoryObject.targetValue}"
                       rendered="#{propertyValueHistoryController.displayDocumentValue()}">
             <h:outputText value="#{propertyValueHistoryObject.displayValue}"/>
-        </h:outputLink>        
+        </h:outputLink>  
+        
+        <h:outputText value="#{propertyValueHistoryObject.displayValue}"
+                      rendered="#{propertyValueHistoryController.displayDateValue()}"/>        
+
+        <ui:fragment rendered="#{propertyValueHistoryController.displayBooleanValue()}">         
+            <h:outputText value="" styleClass="ui-icon ui-icon-check" 
+                          rendered="#{propertyValueHistoryObject.value}"/>
+        </ui:fragment>        
     </p:column>
 
     <p:column sortBy="#{propertyValueHistoryObject.units}" headerText="Units"

@@ -20,55 +20,84 @@ public class StorageUtility {
     public static final Integer SCALED_IMAGE_SIZE = ConfigurationUtility.getPortalPropertyAsInteger(CdbProperty.SCALED_IMAGE_SIZE_PROPERTY_NAME);
     public static final Integer THUMBNAIL_IMAGE_SIZE = ConfigurationUtility.getPortalPropertyAsInteger(CdbProperty.THUMBNAIL_IMAGE_PROPERTY_NAME);
 
-    public static String getApplicationPropertyValueImagesDirectory() {
-        return "/propertyValue/images";
-    }
-
-    public static String getFileSystemPropertyValueImagesDirectory() {
-        return STORAGE_DIRECTORY + getApplicationPropertyValueImagesDirectory();
-    }
-
-    public static String getApplicationLogAttachmentsDirectory() {
-        return "/log/attachments";
-    }
-
-    public static String getApplicationLogAttachmentPathDirectory(String attachmentName) {
-        if (attachmentName != null) {
-            return SessionUtility.getContextRoot() + getApplicationLogAttachmentsDirectory() + "/" + attachmentName;
+    private static final String PropertyValueImagesDirectory = "/propertyValue/images";
+    private static final String PropertyValueDocumentsDirectory = "/propertyValue/documents";
+    private static final String LogAttachmentsDirectory = "/log/attachments";
+    
+    public static String getFullFilePath(String rootPath, String fileName) {
+        if (fileName != null) {
+            return rootPath + "/" + fileName;
         }
         return null;
     }
-
+    
+    //
+    // Log attachments
+    //
+    public static String getLogAttachmentsDirectory() {
+        return LogAttachmentsDirectory;
+    }
+    
+    public static String getLogAttachmentPath(String attachmentName) {
+        return getFullFilePath(getLogAttachmentsDirectory(), attachmentName);
+    }
+    
+    public static String getApplicationLogAttachmentPath(String attachmentName) {
+        return SessionUtility.getContextRoot() + getLogAttachmentPath(attachmentName);
+    }
+    
     public static String getFileSystemLogAttachmentsDirectory() {
-        return STORAGE_DIRECTORY + getApplicationLogAttachmentsDirectory();
+        return STORAGE_DIRECTORY + getLogAttachmentsDirectory();
     }
 
-    public static String getFileSystemLogAttachmentPathDirectory(String attachmentName) {
-        if (attachmentName != null) {
-            return getFileSystemLogAttachmentsDirectory() + "/" + attachmentName;
-        }
-        return null;
+    public static String getFileSystemLogAttachmentPath(String attachmentName) {
+        return getFullFilePath(getFileSystemLogAttachmentsDirectory(), attachmentName);
     }
 
-    public static String getApplicationPropertyValueDocumentsDirectory() {
-        return "/propertyValue/documents";
+    //
+    // Property value documents
+    //
+    public static String getPropertyValueDocumentsDirectory() {
+        return PropertyValueDocumentsDirectory;
     }
 
-    public static String getApplicationPropertyValueDocumentPathDirectory(String documentName) {
-        if (documentName != null) {
-            return SessionUtility.getContextRoot() + getApplicationPropertyValueDocumentsDirectory() + "/" + documentName;
-        }
-        return null;
+    public static String getPropertyValueDocumentPath(String documentName) {
+        return getFullFilePath(getPropertyValueDocumentsDirectory(), documentName);
+    }
+    
+    public static String getApplicationPropertyValueDocumentPath(String documentName) {
+        return SessionUtility.getContextRoot() + getPropertyValueDocumentPath(documentName);
     }
 
     public static String getFileSystemPropertyValueDocumentsDirectory() {
-        return STORAGE_DIRECTORY + getApplicationPropertyValueDocumentsDirectory();
+        return STORAGE_DIRECTORY + getPropertyValueDocumentsDirectory();
     }
 
-    public static String getFileSystemPropertyValueDocumentPathDirectory(String documentName) {
-        if (documentName != null) {
-            return getFileSystemPropertyValueDocumentsDirectory() + "/" + documentName;
-        }
-        return null;
+    public static String getFileSystemPropertyValueDocumentPath(String documentName) {
+        return getFullFilePath(getFileSystemPropertyValueDocumentsDirectory(), documentName);
     }
+    
+    //
+    // Property value images
+    //
+    public static String getPropertyValueImagesDirectory() {
+        return PropertyValueImagesDirectory;
+    }
+    
+    public static String getPropertyValueImagePath(String imageName) {
+        return getFullFilePath(getPropertyValueImagesDirectory(), imageName);
+    }
+    
+    public static String getApplicationPropertyValueImagePath(String imageName) {
+        return SessionUtility.getContextRoot() + getPropertyValueImagePath(imageName);
+    }
+    
+    public static String getFileSystemPropertyValueImagesDirectory() {
+        return STORAGE_DIRECTORY + getPropertyValueImagesDirectory();
+    }
+
+    public static String getFileSystemPropertyValueImagePath(String imageName) {
+        return getFullFilePath(getFileSystemPropertyValueImagesDirectory(), imageName);
+    }
+    
 }

@@ -10,6 +10,8 @@
 package gov.anl.aps.cdb.portal.model.db.entities;
 
 import gov.anl.aps.cdb.common.utilities.ObjectUtility;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
@@ -51,7 +53,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "PropertyValue.findByIsUserWriteable", query = "SELECT p FROM PropertyValue p WHERE p.isUserWriteable = :isUserWriteable"),
     @NamedQuery(name = "PropertyValue.findByIsDynamic", query = "SELECT p FROM PropertyValue p WHERE p.isDynamic = :isDynamic")})
 public class PropertyValue extends CdbEntity {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
@@ -102,6 +104,8 @@ public class PropertyValue extends CdbEntity {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "propertyValue")
     private List<PropertyValueHistory> propertyValueHistoryList;
 
+    public static final transient SimpleDateFormat InputDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+    
     private transient Boolean booleanValue;
     private transient Date dateValue;
 
@@ -288,6 +292,13 @@ public class PropertyValue extends CdbEntity {
     }
 
     public Date getDateValue() {
+        if (dateValue == null && value != null && !value.isEmpty()) {
+            try {
+                dateValue = InputDateFormat.parse(value);
+            } catch (ParseException ex) {
+                // should not happen
+            }
+        }
         return dateValue;
     }
 
@@ -369,12 +380,8 @@ public class PropertyValue extends CdbEntity {
         cloned.componentList = null;
         cloned.designElementList = null;
         cloned.propertyValueHistoryList = null;
-        if (cloned.tag != null && !cloned.tag.isEmpty()) {
-            cloned.tag = "Cloned tag: " + tag;
-        }
-        if (cloned.description != null && !cloned.description.isEmpty()) {
-            cloned.description = "Cloned description: " + description;
-        }
+        cloned.tag = tag;
+        cloned.description = description;
         return cloned;
     }
 
@@ -389,4 +396,5 @@ public class PropertyValue extends CdbEntity {
         }
         return copied;
     }
+
 }

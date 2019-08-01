@@ -10,6 +10,7 @@
 package gov.anl.aps.cdb.portal.model.db.entities;
 
 import gov.anl.aps.cdb.common.utilities.ObjectUtility;
+import gov.anl.aps.cdb.portal.model.db.utilities.EntityInfoUtility;
 import gov.anl.aps.cdb.portal.model.db.utilities.LogUtility;
 import gov.anl.aps.cdb.portal.model.db.utilities.PropertyValueUtility;
 import gov.anl.aps.cdb.portal.utilities.SearchResult;
@@ -225,10 +226,8 @@ public class Design extends CdbEntity {
     public Design clone() throws CloneNotSupportedException {
         Design cloned = (Design) super.clone();
         cloned.id = null;
-        cloned.name = "Cloned name: " + cloned.name;
-        if (description != null && !description.isEmpty()) {
-            cloned.description = "Cloned description: " + description;
-        }
+        cloned.name = "Cloned from: " + cloned.name;
+        cloned.description = description;
         cloned.designElementList = null;
         cloned.logList = null;
         cloned.propertyValueList = null;
@@ -266,7 +265,7 @@ public class Design extends CdbEntity {
 
         LogUtility.searchLogList(logList, searchPattern, searchResult);
         PropertyValueUtility.searchPropertyValueList(propertyValueList, searchPattern, searchResult);
-
+        EntityInfoUtility.searchEntityInfo(entityInfo, searchPattern, searchResult);
         String baseKey;
         for (DesignElement designElement : designElementList) {
             baseKey = "designElement/id:" + designElement.getId();

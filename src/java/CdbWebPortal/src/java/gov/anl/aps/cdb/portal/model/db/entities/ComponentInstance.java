@@ -10,6 +10,7 @@
 package gov.anl.aps.cdb.portal.model.db.entities;
 
 import gov.anl.aps.cdb.common.utilities.ObjectUtility;
+import gov.anl.aps.cdb.portal.model.db.utilities.EntityInfoUtility;
 import gov.anl.aps.cdb.portal.model.db.utilities.LogUtility;
 import gov.anl.aps.cdb.portal.model.db.utilities.PropertyValueUtility;
 import gov.anl.aps.cdb.portal.utilities.SearchResult;
@@ -434,14 +435,8 @@ public class ComponentInstance extends CdbEntity {
         cloned.id = null;
         cloned.qrId = null;
         cloned.serialNumber = null;
-        if (tag != null && !tag.isEmpty()) {
-            cloned.tag = "Cloned tag: " + tag;
-        }
-
-        if (description != null && !description.isEmpty()) {
-            cloned.description = "Cloned description: " + description;
-        }
-
+        cloned.tag = tag;
+        cloned.description = description;
         cloned.designElementList = null;
         cloned.logList = null;
         cloned.componentInstanceLocationHistoryList = null;
@@ -478,6 +473,7 @@ public class ComponentInstance extends CdbEntity {
         searchResult.doesValueContainPattern("serialNumber", serialNumber, searchPattern);
         LogUtility.searchLogList(logList, searchPattern, searchResult);
         PropertyValueUtility.searchPropertyValueList(propertyValueList, searchPattern, searchResult);
+        EntityInfoUtility.searchEntityInfo(entityInfo, searchPattern, searchResult);
         return searchResult;
     }
 }

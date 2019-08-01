@@ -22,7 +22,7 @@ public class DocumentPropertyTypeHandler extends AbstractPropertyTypeHandler {
     public static final String HANDLER_NAME = "Document";
 
     public DocumentPropertyTypeHandler() {
-        super(HANDLER_NAME);
+        super(HANDLER_NAME, DisplayType.DOCUMENT);
     }
 
     @Override
@@ -41,19 +41,14 @@ public class DocumentPropertyTypeHandler extends AbstractPropertyTypeHandler {
     }
 
     @Override
-    public DisplayType getValueDisplayType() {
-        return DisplayType.DOCUMENT;
-    }
-
-    @Override
     public void setTargetValue(PropertyValue propertyValue) {
-        String targetLink = StorageUtility.getApplicationPropertyValueDocumentPathDirectory(propertyValue.getValue());
+        String targetLink = StorageUtility.getApplicationPropertyValueDocumentPath(propertyValue.getValue());
         propertyValue.setTargetValue(targetLink);
     }
 
     @Override
     public void setTargetValue(PropertyValueHistory propertyValueHistory) {
-        String targetLink = StorageUtility.getApplicationPropertyValueDocumentPathDirectory(propertyValueHistory.getValue());
+        String targetLink = StorageUtility.getApplicationPropertyValueDocumentPath(propertyValueHistory.getValue());
         propertyValueHistory.setTargetValue(targetLink);
     }
 }

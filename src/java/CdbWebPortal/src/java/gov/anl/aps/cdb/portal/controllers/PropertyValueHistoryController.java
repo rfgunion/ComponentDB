@@ -9,6 +9,7 @@
  */
 package gov.anl.aps.cdb.portal.controllers;
 
+import gov.anl.aps.cdb.common.constants.CdbPropertyValue;
 import gov.anl.aps.cdb.portal.constants.DisplayType;
 import gov.anl.aps.cdb.portal.model.db.beans.PropertyValueHistoryDbFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyValue;
@@ -17,6 +18,7 @@ import gov.anl.aps.cdb.portal.model.db.entities.SettingType;
 import gov.anl.aps.cdb.portal.model.db.entities.UserInfo;
 import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerFactory;
 import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerInterface;
+import gov.anl.aps.cdb.portal.utilities.StorageUtility;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -367,4 +369,21 @@ public class PropertyValueHistoryController extends CdbEntityController<Property
     public boolean displayDocumentValue() {
         return displayType.equals(DisplayType.DOCUMENT);
     }
+
+    public boolean displayBooleanValue() {
+        return displayType.equals(DisplayType.BOOLEAN);
+    }
+
+    public boolean displayDateValue() {
+        return displayType.equals(DisplayType.DATE);
+    }
+    
+    public String getOriginalImageApplicationPath(PropertyValueHistory propertyValueHistory) {
+        return StorageUtility.getApplicationPropertyValueImagePath(propertyValueHistory.getValue() + CdbPropertyValue.ORIGINAL_IMAGE_EXTENSION);   
+    }
+
+    public String getThumbnailImagePath(PropertyValueHistory propertyValueHistory) {
+        return StorageUtility.getPropertyValueImagePath(propertyValueHistory.getValue() + CdbPropertyValue.THUMBNAIL_IMAGE_EXTENSION);   
+    }
+ 
 }
