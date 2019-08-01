@@ -1,6 +1,14 @@
+/*
+ * Copyright (c) 2014-2015, Argonne National Laboratory.
+ *
+ * SVN Information:
+ *   $HeadURL$
+ *   $Date$
+ *   $Revision$
+ *   $Author$
+ */
 package gov.anl.aps.cdb.portal.controllers;
 
-import gov.anl.aps.cdb.common.exceptions.ObjectAlreadyExists;
 import gov.anl.aps.cdb.portal.model.db.entities.AssemblyComponent;
 import gov.anl.aps.cdb.portal.model.db.beans.AssemblyComponentDbFacade;
 import gov.anl.aps.cdb.portal.model.db.beans.ComponentDbFacade;
@@ -27,16 +35,21 @@ import org.primefaces.component.autocomplete.AutoComplete;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.event.SelectEvent;
 
+/**
+ * Controller class for assembly components.
+ */
 @Named("assemblyComponentController")
 @SessionScoped
 public class AssemblyComponentController extends CdbEntityController<AssemblyComponent, AssemblyComponentDbFacade> implements Serializable {
 
+    /*
+     * Controller specific settings
+     */
     private static final String DisplayDescriptionSettingTypeKey = "AssemblyComponent.List.Display.Description";
     private static final String DisplayFlatTableViewSettingTypeKey = "AssemblyComponent.List.Display.FlatTableView";
     private static final String DisplayIdSettingTypeKey = "AssemblyComponent.List.Display.Id";
     private static final String DisplayNumberOfItemsPerPageSettingTypeKey = "AssemblyComponent.List.Display.NumberOfItemsPerPage";
     private static final String DisplaySortOrderSettingTypeKey = "AssemblyComponent.List.Display.SortOrder";
-
     private static final String FilterByDescriptionSettingTypeKey = "AssemblyComponent.List.FilterBy.Description";
     private static final String FilterByNameSettingTypeKey = "AssemblyComponent.List.FilterBy.Name";
     private static final String FilterBySortOrderSettingTypeKey = "AssemblyComponent.List.FilterBy.SortOrder";
@@ -55,14 +68,13 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
     private String filterBySortOrder = null;
 
     private List<Component> selectComponentCandidateList = null;
-
     private Component selectedAssembly = null;
 
     public AssemblyComponentController() {
     }
 
     @Override
-    protected AssemblyComponentDbFacade getFacade() {
+    protected AssemblyComponentDbFacade getEntityDbFacade() {
         return assemblyComponentFacade;
     }
 
@@ -101,34 +113,40 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         return super.getAvailableItems();
     }
 
-    @Override
-    public void prepareEntityInsert(AssemblyComponent assemblyComponent) throws ObjectAlreadyExists {
-    }
-
-    @Override
-    public void prepareEntityUpdate(AssemblyComponent assemblyComponent) throws ObjectAlreadyExists {
-    }
-
-    @Override
-    public void prepareEntityUpdateOnRemoval(AssemblyComponent assemblyComponent) {
-    }
-
+    /**
+     * Prepare assembly component view from assembly view page.
+     *
+     * @param assemblyComponent assembly component
+     * @return assembly component view URL
+     */
     public String prepareViewFromAssembly(AssemblyComponent assemblyComponent) {
         logger.debug("Preparing assembly component view from assembly view page");
         prepareView(assemblyComponent);
         return "/views/assemblyComponent/view.xhtml?faces-redirect=true";
     }
 
+    /**
+     * Prepare assembly view from assembly component view page.
+     *
+     * @param assemblyComponent assembly component
+     * @return assembly view URL
+     */
     public String prepareViewToAssembly(AssemblyComponent assemblyComponent) {
         return "/views/component/view.xhtml?id=" + assemblyComponent.getAssembly().getId() + "&faces-redirect=true";
     }
 
+    /**
+     * Delete assembly component and return assembly view page.
+     *
+     * @param assemblyComponent assembly component to be deleted
+     * @return assembly view URL
+     */
     public String destroyAndReturnAssemblyView(AssemblyComponent assemblyComponent) {
         Component assembly = assemblyComponent.getAssembly();
         setCurrent(assemblyComponent);
         try {
             logger.debug("Destroying " + assemblyComponent.getComponent().getName());
-            getFacade().remove(assemblyComponent);
+            getEntityDbFacade().remove(assemblyComponent);
             SessionUtility.addInfoMessage("Success", "Deleted assembly component id " + assemblyComponent.getId() + ".");
             return "/views/component/view.xhtml?faces-redirect=true?id=" + assembly.getId();
         } catch (Exception ex) {
@@ -197,6 +215,9 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         filterBySortOrder = null;
     }
 
+    /**
+     * Converter class for assembly component objects.
+     */
     @FacesConverter(forClass = AssemblyComponent.class)
     public static class AssemblyComponentControllerConverter implements Converter {
 
@@ -208,21 +229,19 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
             try {
                 AssemblyComponentController controller = (AssemblyComponentController) facesContext.getApplication().getELResolver().
                         getValue(facesContext.getELContext(), null, "assemblyComponentController");
-                return controller.getEntity(getKey(value));
+                return controller.getEntity(getIntegerKey(value));
             } catch (Exception ex) {
                 // we cannot get entity from a given key
-                logger.warn("Value " + value + " cannot be converted to design element object.");
+                logger.warn("Value " + value + " cannot be converted to assembly component object.");
                 return null;
             }
         }
 
-        java.lang.Integer getKey(String value) {
-            java.lang.Integer key;
-            key = Integer.valueOf(value);
-            return key;
+        private Integer getIntegerKey(String value) {
+            return Integer.valueOf(value);
         }
 
-        String getStringKey(java.lang.Integer value) {
+        private String getStringKey(Integer value) {
             StringBuilder sb = new StringBuilder();
             sb.append(value);
             return sb.toString();
@@ -275,9 +294,14 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         this.selectedAssembly = selectedAssembly;
     }
 
-    // This listener is accessed either after selection made in dialog,
-    // or from selection menu.    
+    /**
+     * Listener for assembly component value change.
+     *
+     * @param valueChangeEvent change event
+     */
     public void selectComponentValueChangeListener(ValueChangeEvent valueChangeEvent) {
+        // This listener is accessed either after selection made in dialog,
+        // or from selection menu. 
         AssemblyComponent assemblyComponent = getCurrent();
         if (assemblyComponent == null || valueChangeEvent == null) {
             return;
@@ -305,6 +329,11 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         }
     }
 
+    /**
+     * Listener for assembly component selection event.
+     *
+     * @param selectEvent assembly component selection event
+     */
     public void selectComponentListener(SelectEvent selectEvent) {
         AssemblyComponent assemblyComponent = getCurrent();
         if (assemblyComponent == null) {
@@ -318,6 +347,11 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         }
     }
 
+    /**
+     * Listener for un-selecting assembly component.
+     *
+     * @param selectEvent clear assembly component selection event
+     */
     public void unselectComponentListener(SelectEvent selectEvent) {
         AssemblyComponent assemblyComponent = getCurrent();
         if (assemblyComponent == null) {
@@ -326,6 +360,12 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         assemblyComponent.setComponent(null);
     }
 
+    /**
+     * Retrieve list of component candidates suitable for assembly component
+     * selection.
+     *
+     * @return component list
+     */
     public List<Component> getSelectComponentCandidateList() {
         if (selectComponentCandidateList == null) {
             selectComponentCandidateList = componentFacade.findAll();
@@ -333,10 +373,21 @@ public class AssemblyComponentController extends CdbEntityController<AssemblyCom
         return selectComponentCandidateList;
     }
 
+    /**
+     * Retrieve list of components that satisfy auto-complete query.
+     *
+     * @param query component name pattern
+     * @return component list
+     */
     public List<Component> completeComponent(String query) {
         return ComponentUtility.filterComponent(query, getSelectComponentCandidateList());
     }
 
+    /**
+     * Select assembly component.
+     *
+     * @param component component to become part of assembly
+     */
     public void selectComponent(Component component) {
         AssemblyComponent assemblyComponent = getCurrent();
         if (assemblyComponent != null) {

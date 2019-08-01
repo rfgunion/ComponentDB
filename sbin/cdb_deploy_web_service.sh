@@ -79,11 +79,11 @@ fi
 echo "Checking service certificates"
 if [ ! -f $CDB_WEB_SERVICE_CERT_FILE -o ! -f $CDB_WEB_SERVICE_KEY_FILE ]; then
     echo "Creating CDB Web Service certificate"
-    if [ ! -f $CDB_CA_DIR/certs/$CDB_SERVICE_HOST.crt ]; then
-        $MY_DIR/cdb_create_server_cert.sh $CDB_SERVICE_HOST $CDB_SERVICE_HOST cdb@aps.anl.gov || exit 1
+    if [ ! -f $CDB_CA_DIR/certs/$CDB_WEB_SERVICE_HOST.crt ]; then
+        $MY_DIR/cdb_create_server_cert.sh $CDB_WEB_SERVICE_HOST $CDB_WEB_SERVICE_HOST cdb@aps.anl.gov || exit 1
     fi
-    rsync -ar $CDB_CA_DIR/certs/$CDB_SERVICE_HOST.crt $CDB_WEB_SERVICE_CERT_FILE
-    rsync -ar $CDB_CA_DIR/certs/$CDB_SERVICE_HOST.key $CDB_WEB_SERVICE_KEY_FILE
+    rsync -ar $CDB_CA_DIR/certs/$CDB_WEB_SERVICE_HOST.crt $CDB_WEB_SERVICE_CERT_FILE
+    rsync -ar $CDB_CA_DIR/certs/$CDB_WEB_SERVICE_HOST.key $CDB_WEB_SERVICE_KEY_FILE
 else
     echo "CDB service certificate exists"
 fi
@@ -121,7 +121,7 @@ cmd="cat $CDB_ROOT_DIR/etc/setup.sh.template \
         | sed 's?CDB_SERVICE_HOST=.*?CDB_SERVICE_HOST=$CDB_WEB_SERVICE_HOST?g' \
         | sed 's?CDB_SERVICE_PORT=.*?CDB_SERVICE_PORT=$CDB_WEB_SERVICE_PORT?g' \
         > $CDB_USER_SETUP_FILE"
-    eval $cmd || exit 1
+eval $cmd || exit 1
 
 echo "Starting web service for $CDB_DB_NAME"
 $CDB_WEB_SERVICE_INIT_CMD start $CDB_DB_NAME

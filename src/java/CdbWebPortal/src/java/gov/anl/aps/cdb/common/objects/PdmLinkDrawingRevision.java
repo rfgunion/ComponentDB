@@ -1,7 +1,19 @@
+/*
+ * Copyright (c) 2014-2015, Argonne National Laboratory.
+ *
+ * SVN Information:
+ *   $HeadURL$
+ *   $Date$
+ *   $Revision$
+ *   $Author$
+ */
 package gov.anl.aps.cdb.common.objects;
 
 import gov.anl.aps.cdb.common.utilities.HttpLinkUtility;
 
+/**
+ * PDMLink drawing revision object.
+ */
 public class PdmLinkDrawingRevision extends CdbObject {
 
     private String state;
@@ -11,6 +23,7 @@ public class PdmLinkDrawingRevision extends CdbObject {
     private String icmsUrl;
 
     private transient String displayIcmsUrl;
+
 
     public PdmLinkDrawingRevision() {
     }
@@ -55,6 +68,11 @@ public class PdmLinkDrawingRevision extends CdbObject {
         this.icmsUrl = icmsUrl;
     }
 
+    /**
+     * Shorten ICMS URL string so that it is suitable for display on a web page.
+     *
+     * @return ICMS URL display string
+     */
     public String getDisplayIcmsUrl() {
         if (displayIcmsUrl == null && icmsUrl != null) {
             displayIcmsUrl = HttpLinkUtility.prepareHttpLinkDisplayValue(icmsUrl);

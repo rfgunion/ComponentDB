@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2014-2015, Argonne National Laboratory.
+ *
+ * SVN Information:
+ *   $HeadURL$
+ *   $Date$
+ *   $Revision$
+ *   $Author$
+ */
 package gov.anl.aps.cdb.common.objects;
 
 import gov.anl.aps.cdb.common.utilities.FileUtility;
@@ -7,27 +16,31 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * PDMLink drawing object.
+ */
 public class PdmLinkDrawing extends CdbObject {
 
+    /**
+     * List of valid drawing extensions.
+     */
     public static final List<String> VALID_EXTENSION_LIST = Collections.unmodifiableList(
             Arrays.asList("drw", "asm", "prt"));
-    
-    private String windchillUrl; 
+
+    private String windchillUrl;
     private LinkedList<PdmLinkDrawingRevision> revisionList;
-    
+
     private transient String displayWindchillUrl;
-    
+
     public static boolean isExtensionValid(String drawingName) {
         if (drawingName == null || drawingName.isEmpty()) {
             return false;
         }
         String extension = FileUtility.getFileExtension(drawingName).toLowerCase();
-        if (VALID_EXTENSION_LIST.contains(extension)) {
-            return true;
-        }
-        return false;
+        return VALID_EXTENSION_LIST.contains(extension);
     }
-    
+
+
     public PdmLinkDrawing() {
     }
 
@@ -39,6 +52,11 @@ public class PdmLinkDrawing extends CdbObject {
         this.windchillUrl = windchillUrl;
     }
 
+    /**
+     * Shorten windchill URL string so that it is suitable for display on a web page.
+     *
+     * @return display value for windchill URL string
+     */
     public String getDisplayWindchillUrl() {
         if (displayWindchillUrl == null && windchillUrl != null) {
             displayWindchillUrl = HttpLinkUtility.prepareHttpLinkDisplayValue(windchillUrl);
@@ -54,5 +72,4 @@ public class PdmLinkDrawing extends CdbObject {
         this.revisionList = revisionList;
     }
 
-    
 }
