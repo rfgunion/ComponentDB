@@ -49,4 +49,6 @@ make deploy-web-service
 5) deploy web portal
 make deploy-web-portal
 
+6) commit branch changes
+svn commit -m "release updates"
 
