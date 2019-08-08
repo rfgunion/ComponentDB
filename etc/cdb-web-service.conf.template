@@ -5,6 +5,10 @@ sslCertFile=CDB_INSTALL_DIR/etc/ssl/cdb-web-service.crt
 sslKeyFile=CDB_INSTALL_DIR/etc/ssl/cdb-web-service.key
 sslCaCertFile=CDB_INSTALL_DIR/etc/ssl/cacert.pem
 
+[Storage]
+storageDirectory=CDB_DATA_DIR
+cdbInstallationDirectory=CDB_ROOT_DIR
+
 [WebPortal]
 portalWebAddress=CDB_PORTAL_URL
 
@@ -24,7 +28,8 @@ adminGroupName=CDB_ADMIN
 principalRetriever=DbPrincipalRetriever()
 #principalRetriever=NoOpPrincipalRetriever()
 principalAuthenticator1=CryptedPasswordPrincipalAuthenticator()
-principalAuthenticator2=LdapPasswordPrincipalAuthenticator(serverUrl='ldaps://phoebusldap.aps.anl.gov:636', dnFormat='uid=%s,ou=people,o=aps.anl.gov,dc=aps,dc=anl,dc=gov')
+#principalAuthenticator2=LdapPasswordPrincipalAuthenticator(serverUrl='CDB_LDAP_AUTH_SERVER_URL', dnFormat='CDB_LDAP_AUTH_DN_FORMAT')
+#principalAuthenticator3=LdapPasswordPrincipalAuthenticator(serverUrl='CDB_LDAP_AUTH_SERVER_URL', dnFormat='CDB_LDAP_AUTH_DN_FORMAT',serviceDn='CDB_LDAP_SERVICE_DN', servicePass='CDB_LDAP_SERVICE_PASS', userLookupFilter='CDB_LDAP_LOOKUP_FILTER')
 
 [DbManager]
 dbSchema=CDB_DB_NAME

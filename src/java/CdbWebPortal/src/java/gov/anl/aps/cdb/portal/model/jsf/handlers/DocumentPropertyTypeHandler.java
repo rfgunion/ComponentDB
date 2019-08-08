@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/model/jsf/handlers/DocumentPropertyTypeHandler.java $
- *   $Date: 2015-08-17 09:49:06 -0500 (Mon, 17 Aug 2015) $
- *   $Revision: 709 $
- *   $Author: sveseli $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.jsf.handlers;
 
@@ -33,11 +28,6 @@ public class DocumentPropertyTypeHandler extends AbstractPropertyTypeHandler {
     @Override
     public String getEditActionIcon() {
         return "ui-icon-circle-arrow-n";
-    }
-
-    @Override
-    public String getEditActionBean() {
-        return "propertyValueDocumentUploadBean";
     }
 
     @Override

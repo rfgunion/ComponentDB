@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -12,32 +16,33 @@
     </ui:define>
     
     <ui:define name="customizeDisplayDialogConent">
+        <ui:param name="itemMemberViewSettingObject" value="#{itemMemberViewController.settingObject}" />
         <p:panelGrid columns="2">
-                <p:inputText id="designMemberDisplayNumberOfItemsPerPage" value="#{itemMemberViewController.displayNumberOfItemsPerPage}" style="width:20px"/>
+                <p:inputText id="designMemberDisplayNumberOfItemsPerPage" value="#{itemMemberViewSettingObject.displayNumberOfItemsPerPage}" style="width:20px"/>
                 <h:outputLabel for="designMemberDisplayNumberOfItemsPerPage" value="Display Number Of Items Per Page" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayCreatedByUser" value="#{itemMemberViewController.displayCreatedByUser}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayCreatedByUser" value="#{itemMemberViewSettingObject.displayCreatedByUser}"/>  
                 <h:outputLabel for="designMemberDisplayCreatedByUser" value="Display Created By User" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayCreatedOnDateTime" value="#{itemMemberViewController.displayCreatedOnDateTime}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayCreatedOnDateTime" value="#{itemMemberViewSettingObject.displayCreatedOnDateTime}"/>  
                 <h:outputLabel for="designMemberDisplayCreatedOnDateTime" value="Display Created On Date/Time" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayDescription" value="#{itemMemberViewController.displayDescription}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayDescription" value="#{itemMemberViewSettingObject.displayDescription}"/>  
                 <h:outputLabel for="designMemberDisplayDescription" value="Display Description" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayId" value="#{itemMemberViewController.displayId}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayId" value="#{itemMemberViewSettingObject.displayId}"/>  
                 <h:outputLabel for="designMemberDisplayId" value="Display Id" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayLastModifiedByUser" value="#{itemMemberViewController.displayLastModifiedByUser}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayLastModifiedByUser" value="#{itemMemberViewSettingObject.displayLastModifiedByUser}"/>  
                 <h:outputLabel for="designMemberDisplayLastModifiedByUser" value="Display Modified By User" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayLastModifiedOnDateTime" value="#{itemMemberViewController.displayLastModifiedOnDateTime}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayLastModifiedOnDateTime" value="#{itemMemberViewSettingObject.displayLastModifiedOnDateTime}"/>  
                 <h:outputLabel for="designMemberDisplayLastModifiedOnDateTime" value="Display Modified On Date/Time" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayOwnerUser" value="#{itemMemberViewController.displayOwnerUser}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayOwnerUser" value="#{itemMemberViewSettingObject.displayOwnerUser}"/>  
                 <h:outputLabel for="designMemberDisplayOwnerUser" value="Display Owner User" styleClass="dialogDataLabel"/>
 
-                <p:selectBooleanCheckbox id="designMemberDisplayOwnerGroup" value="#{itemMemberViewController.displayOwnerGroup}"/>  
+                <p:selectBooleanCheckbox id="designMemberDisplayOwnerGroup" value="#{itemMemberViewSettingObject.displayOwnerGroup}"/>  
                 <h:outputLabel for="designMemberDisplayOwnerGroup" value="Display Owner Group" styleClass="dialogDataLabel"/>
             </p:panelGrid>
     </ui:define>

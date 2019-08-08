@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.jsf.beans;
 
@@ -14,6 +13,7 @@ import gov.anl.aps.cdb.portal.controllers.ItemDomainInventoryController;
 import gov.anl.aps.cdb.portal.model.db.beans.PropertyMetadataFacade;
 import gov.anl.aps.cdb.portal.model.db.beans.PropertyTypeFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.Item;
+import gov.anl.aps.cdb.portal.model.db.entities.ItemDomainCatalog;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyMetadata;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyType;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyValue;
@@ -21,23 +21,20 @@ import gov.anl.aps.cdb.portal.model.db.entities.UserInfo;
 import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 import org.apache.log4j.Logger;
-import org.primefaces.context.RequestContext;
 
 @Named("sparePartsBean")
 @SessionScoped
 public class SparePartsBean implements Serializable {
-    
-    protected static final String SPARE_PARTS_BEAN_NAME = "sparePartsBean"; 
+
+    protected static final String SPARE_PARTS_BEAN_NAME = "sparePartsBean";
     private static final Logger logger = Logger.getLogger(SparePartsBean.class.getName());
 
     protected static final String SPARE_PARTS_CONFIGURATION_PROPERTY_TYPE_NAME = "Spare Parts Configuration";
-    protected static final String SPARE_PARTS_INDICATION_PROPERTY_TYPE_NAME = "Spare Part Indication";
     protected final String SPARE_PARTS_EMAIL_KEY = "email";
     protected final String SPARE_PARTS_MIN_KEY = "minQuantity";
     protected final String ITEM_INVENTORY_CONTROLLER_NAME = "itemDomainInventoryController";
@@ -46,9 +43,8 @@ public class SparePartsBean implements Serializable {
 
     protected final String NO_EMAIL_VALUE = "None";
 
-    protected PropertyType sparePartsConfigurationPropertyType = null;
-    protected PropertyType sparePartIndicationPropertyType = null;    
-    protected Item currentItem;
+    protected PropertyType sparePartsConfigurationPropertyType = null;    
+    protected ItemDomainCatalog currentItem;
 
     protected String selectedEmailOption = null;
     protected List<String> emailOptionsList = null;
@@ -77,6 +73,10 @@ public class SparePartsBean implements Serializable {
     @EJB
     PropertyTypeFacade propertyTypeFacade;
 
+    public static SparePartsBean getInstance() {
+        return (SparePartsBean) SessionUtility.findBean(SPARE_PARTS_BEAN_NAME);
+    }
+
     public void resetSparePartsVariables() {
         selectedEmailOption = null;
         sparePartsConfigurationPropertyType = null;
@@ -85,9 +85,9 @@ public class SparePartsBean implements Serializable {
     public void loadSparePartsConfiguration(CdbEntityController entityController, String onSuccessCommand) {
         resetSparePartsVariables();
         try {
-            Item item = getCurrentCatalogItemForController(entityController);
+            ItemDomainCatalog item = getCurrentCatalogItemForController(entityController);
             sparePartsConfigurationPropertyValue = prepareSparePartsConfigurationPropertyValue(item);
-            RequestContext.getCurrentInstance().execute(onSuccessCommand);
+            SessionUtility.executeRemoteCommand(onSuccessCommand);            
         } catch (CdbException ex) {
             SessionUtility.addErrorMessage("Error", ex.getErrorMessage());
         }
@@ -95,8 +95,8 @@ public class SparePartsBean implements Serializable {
 
     public String saveSparePartsConfiguration(CdbEntityController entityController) {
         try {
-            Item item = getCurrentCatalogItemForController(entityController);
-            prepareSavePartsConfiurgationForItem(item);
+            ItemDomainCatalog catalogItem = getCurrentCatalogItemForController(entityController);
+            prepareSavePartsConfiurgationForItem(catalogItem);
             ItemDomainCatalogController itemController = getItemController(entityController);
             String result = itemController.update();
             if (result != null) {
@@ -112,9 +112,9 @@ public class SparePartsBean implements Serializable {
 
     public String removeSparePartsConfiguration(CdbEntityController entityController) {
         try {
-            Item item = getCurrentCatalogItemForController(entityController);
+            ItemDomainCatalog catalogItem = getCurrentCatalogItemForController(entityController);
             if (sparePartsConfigurationPropertyValue.getId() != null) {
-                item.getPropertyValueList().remove(sparePartsConfigurationPropertyValue);
+                catalogItem.getPropertyValueList().remove(sparePartsConfigurationPropertyValue);
             }
             ItemDomainCatalogController itemController = getItemController(entityController);
             return itemController.update();
@@ -123,25 +123,25 @@ public class SparePartsBean implements Serializable {
         }
         return null;
     }
-    
-    public static int getSparePartsMinimumForItem(Item item) {
-        SparePartsBean sparePartsBean = (SparePartsBean) SessionUtility.findBean(SPARE_PARTS_BEAN_NAME); 
-        return sparePartsBean.getSparePartsMinimumForItemCached(item);        
+
+    public static int getSparePartsMinimumForItem(ItemDomainCatalog catalogItem) {
+        SparePartsBean sparePartsBean = getInstance();
+        return sparePartsBean.getSparePartsMinimumForItemCached(catalogItem);
     }
-    
-    private int getSparePartsMinimumForItemCached(Item item) {
-        if (!ObjectUtility.equals(currentItem, item)) {
-            sparePartsConfigurationPropertyValue = getStoredSparePartsConfigrationPropertyValue(item);             
+
+    private int getSparePartsMinimumForItemCached(ItemDomainCatalog catalogItem) {
+        if (!ObjectUtility.equals(currentItem, catalogItem)) {
+            sparePartsConfigurationPropertyValue = getStoredSparePartsConfigrationPropertyValue(catalogItem);
         }
-        
+
         if (sparePartsConfigurationPropertyValue != null) {
             try {
                 return Integer.parseInt(getSparePartsMinimumValue());
             } catch (NumberFormatException ex) {
                 SessionUtility.addErrorMessage("Error", ex.getMessage());
                 logger.error(ex);
-                return -1; 
-            }            
+                return -1;
+            }
         }
         return -1;
     }
@@ -150,17 +150,17 @@ public class SparePartsBean implements Serializable {
      * Used by the catalog item controller to identify when a property value
      * list contains configuration.
      *
-     * @param item
+     * @param catalogItem
      * @return
      */
-    public static boolean isItemContainSparePartConfiguration(Item item) {
-        if (item != null) {
-            return getStoredSparePartsConfigrationPropertyValue(item) != null;
+    public static boolean isItemContainSparePartConfiguration(ItemDomainCatalog catalogItem) {
+        if (catalogItem != null) {
+            return getStoredSparePartsConfigrationPropertyValue(catalogItem) != null;
         }
-        return false; 
+        return false;
     }
 
-    private void prepareSavePartsConfiurgationForItem(Item item) throws CdbException {
+    private void prepareSavePartsConfiurgationForItem(ItemDomainCatalog catalogItem) throws CdbException {
         if (sparePartsConfigurationPropertyValue == null) {
             throw new CdbException("No item specified in controller.");
         }
@@ -176,7 +176,7 @@ public class SparePartsBean implements Serializable {
                 propertyMetadataFacade.remove(emailMetadata);
                 sparePartsConfigurationPropertyValue.removePropertyMetadataKey(SPARE_PARTS_EMAIL_KEY);
             }
-            
+
         } else if (selectedEmailOption.equals(EmailOptions.noNotification.getDisplayValue())) {
             sparePartsConfigurationPropertyValue.setPropertyMetadataValue(SPARE_PARTS_EMAIL_KEY, NO_EMAIL_VALUE);
         } else {
@@ -190,11 +190,11 @@ public class SparePartsBean implements Serializable {
             }
         }
         if (sparePartsConfigurationPropertyValue.getId() == null) {
-            item.getPropertyValueList().add(sparePartsConfigurationPropertyValue);
+            catalogItem.getPropertyValueList().add(sparePartsConfigurationPropertyValue);
         }
     }
 
-    private Item getCurrentCatalogItemForController(CdbEntityController entityController) throws CdbException {
+    private ItemDomainCatalog getCurrentCatalogItemForController(CdbEntityController entityController) throws CdbException {
         ItemDomainCatalogController itemController = getItemController(entityController);
         currentItem = itemController.getCurrent();
         if (currentItem == null) {
@@ -212,11 +212,7 @@ public class SparePartsBean implements Serializable {
 
     }
 
-    private static PropertyValue getStoredSparePartsIndicationPropertyValue(Item item) {
-        return getPropertyValueByType(item, SPARE_PARTS_INDICATION_PROPERTY_TYPE_NAME);
-    }
-
-    private static PropertyValue getStoredSparePartsConfigrationPropertyValue(Item item) {
+    private static PropertyValue getStoredSparePartsConfigrationPropertyValue(ItemDomainCatalog item) {
         return getPropertyValueByType(item, SPARE_PARTS_CONFIGURATION_PROPERTY_TYPE_NAME);
     }
 
@@ -233,12 +229,12 @@ public class SparePartsBean implements Serializable {
         return null;
     }
 
-    private PropertyValue prepareSparePartsConfigurationPropertyValue(Item item) throws CdbException {
+    private PropertyValue prepareSparePartsConfigurationPropertyValue(ItemDomainCatalog catalogItem) throws CdbException {
         // Only one property type of spare parts can be added. 
-        PropertyValue propertyValue = getStoredSparePartsConfigrationPropertyValue(item);
+        PropertyValue propertyValue = getStoredSparePartsConfigrationPropertyValue(catalogItem);
         if (propertyValue == null) {
             // Add property value
-            List<PropertyValue> propertyValueList = item.getPropertyValueList();
+            List<PropertyValue> propertyValueList = catalogItem.getPropertyValueList();
             propertyValue = new PropertyValue();
             propertyValue.setPropertyType(getSparePartsConfigurationPropertyType());
         }
@@ -253,16 +249,6 @@ public class SparePartsBean implements Serializable {
             }
         }
         return sparePartsConfigurationPropertyType;
-    }
-
-    public PropertyType getSparePartIndicationPropertyType() throws CdbException {
-        if (sparePartIndicationPropertyType == null) {
-            sparePartIndicationPropertyType = propertyTypeFacade.findByName(SPARE_PARTS_INDICATION_PROPERTY_TYPE_NAME);
-            if (sparePartIndicationPropertyType == null) {
-                throw new CdbException(SPARE_PARTS_INDICATION_PROPERTY_TYPE_NAME + " property type cannot be found.");
-            }
-        }
-        return sparePartIndicationPropertyType;
     }
 
     public List<String> getEmailOptionsList() {
@@ -346,70 +332,6 @@ public class SparePartsBean implements Serializable {
 
     public boolean isRenderConfigurationPanel() {
         return sparePartsConfigurationPropertyValue != null;
-    }
-
-    public boolean getSparePartsIndication(Item inventoryItem) {
-        PropertyValue propertyValue = getStoredSparePartsIndicationPropertyValue(inventoryItem);
-        if (propertyValue != null) {
-            return Boolean.parseBoolean(propertyValue.getValue());
-        }
-
-        return false;
-    }
-
-    public void setSparePartsIndication(Item inventoryItem) {
-        PropertyValue spareIndicatorPropertyValue = getStoredSparePartsIndicationPropertyValue(inventoryItem);
-        boolean currentSpareValue = inventoryItem.getSparePartIndicator();
-        
-        if (spareIndicatorPropertyValue == null && currentSpareValue == false) {
-            // No need to save ... missing property means it is not a spare.
-            return; 
-        }
-
-        if (spareIndicatorPropertyValue == null) {
-            spareIndicatorPropertyValue = new PropertyValue();
-            inventoryItem.getPropertyValueList().add(spareIndicatorPropertyValue);
-            try {
-                spareIndicatorPropertyValue.setPropertyType(getSparePartIndicationPropertyType());
-            } catch (CdbException ex) {
-                SessionUtility.addErrorMessage("Error", ex.getErrorMessage());
-                return;
-            }
-        }
-        
-        Boolean previousSpareValue;
-        previousSpareValue = Boolean.parseBoolean(spareIndicatorPropertyValue.getValue());
-        if (previousSpareValue == currentSpareValue) {
-            return;
-        }
-        
-        try {
-            updateSparePartsIndicatorPropertyValue(spareIndicatorPropertyValue, currentSpareValue);
-        } catch (CdbException ex) {
-            SessionUtility.addErrorMessage("Error", ex.getErrorMessage());
-            return;
-        }
-        getItemDomainInventoryController().setCurrent(inventoryItem);
-        getItemDomainInventoryController().update(); 
-    }
-
-    private void updateSparePartsIndicatorPropertyValue(PropertyValue propertyValue, boolean newValue) throws CdbException {
-        UserInfo enteredByUser = (UserInfo) SessionUtility.getUser();
-        if (enteredByUser == null) {
-            throw new CdbException("No session user... cannot update property value. ");
-        }
-
-        propertyValue.setValue(Boolean.toString(newValue));
-        propertyValue.setEnteredOnDateTime(new Date());
-
-        propertyValue.setEnteredByUser(enteredByUser);
-    }
-
-    public ItemDomainInventoryController getItemDomainInventoryController() {
-        if (itemDomainInventoryController == null) {
-            itemDomainInventoryController = (ItemDomainInventoryController) SessionUtility.findBean(ITEM_INVENTORY_CONTROLLER_NAME);
-        }
-        return itemDomainInventoryController;
     }
 
 }

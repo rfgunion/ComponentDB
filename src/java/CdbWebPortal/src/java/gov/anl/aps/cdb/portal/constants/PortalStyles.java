@@ -1,13 +1,20 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.constants;
 
 public enum PortalStyles {
     favoritesOn("favoriteOn"),
-    favoritesOff("favoriteOff");
+    favoritesOff("favoriteOff"),
+    
+    rowStyleErrorInEntity("errorItemInRow"), 
+    rowStyleNewEntity("newItemInRow"),
+    
+    machineDesignIcon("ui-icon-machine-design"),
+    catalogIcon("ui-icon-catalog"),
+    inventoryIcon("ui-icon-inventory"),
+    maarcIcon("ui-icon-maarc");
 
     private String value;
 

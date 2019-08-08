@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from cdb.common.exceptions.invalidRequest import InvalidRequest
 from cdb.common.utility.cryptUtility import CryptUtility
 from cdb.common.cli.cdbDbCli import CdbDbCli

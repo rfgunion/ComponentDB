@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/utilities/SessionUtility.java $
- *   $Date: 2016-01-08 14:26:41 -0600 (Fri, 08 Jan 2016) $
- *   $Revision: 907 $
- *   $Author: djarosz $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.utilities;
 
@@ -16,7 +11,11 @@ import javax.faces.application.FacesMessage;
 import javax.faces.application.NavigationHandler;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
+import org.apache.log4j.Logger;
+import org.primefaces.PrimeFaces;
 
 /**
  * Session utility class.
@@ -28,29 +27,36 @@ public class SessionUtility {
      */
     public static final String MESSAGES_KEY = "messages";
     public static final String USER_KEY = "user";
+    public static final String LAST_USERNAME_KEY = "lastUsername";
     public static final String VIEW_STACK_KEY = "viewStack";
     public static final String LAST_SESSION_ERROR_KEY = "lastSessionError";
-    public static final String ROLE_KEY = "role";
+    public static final String ROLE_KEY = "role";    
+    private static final String MODULE_NAME_LOOKUP = "java:module/ModuleName";
+    private static final String JAVA_LOOKUP_START = "java:global/";
+    private static String FACADE_LOOKUP_STRING_START = null; 
+    
+    private static final Logger logger = org.apache.log4j.Logger.getLogger(SessionUtility.class.getName());          
 
     public SessionUtility() {
     }
 
     public static void addErrorMessage(String summary, String detail) {
-        FacesContext context = FacesContext.getCurrentInstance();
-        context.getExternalContext().getFlash().setKeepMessages(true);
-        context.addMessage(MESSAGES_KEY, new FacesMessage(FacesMessage.SEVERITY_ERROR, summary, detail));
+        addMessage(MESSAGES_KEY, new FacesMessage(FacesMessage.SEVERITY_ERROR, summary, detail));
     }
 
     public static void addWarningMessage(String summary, String detail) {
-        FacesContext context = FacesContext.getCurrentInstance();
-        context.getExternalContext().getFlash().setKeepMessages(true);
-        context.addMessage(MESSAGES_KEY, new FacesMessage(FacesMessage.SEVERITY_WARN, summary, detail));
+        addMessage(MESSAGES_KEY, new FacesMessage(FacesMessage.SEVERITY_WARN, summary, detail));
     }
 
     public static void addInfoMessage(String summary, String detail) {
+        addMessage(MESSAGES_KEY, new FacesMessage(FacesMessage.SEVERITY_INFO, summary, detail));
+    }
+
+    private static void addMessage(String clientId, FacesMessage message) {
         FacesContext context = FacesContext.getCurrentInstance();
         context.getExternalContext().getFlash().setKeepMessages(true);
-        context.addMessage(MESSAGES_KEY, new FacesMessage(FacesMessage.SEVERITY_INFO, summary, detail));
+        context.addMessage(clientId, message);
+        PrimeFaces.current().ajax().update(clientId);
     }
 
     public static String getRequestParameterValue(String parameterName) {
@@ -60,7 +66,7 @@ public class SessionUtility {
 
     public static void setUser(Object user) {
         Map sessionMap = FacesContext.getCurrentInstance().getExternalContext().getSessionMap();
-        sessionMap.remove(USER_KEY); 
+        sessionMap.remove(USER_KEY);
         sessionMap.put(USER_KEY, user);
     }
 
@@ -88,6 +94,18 @@ public class SessionUtility {
         return null;
     }
 
+    public static String getRedirectToCurrentView() {
+        String currentView = getCurrentViewId();
+        if (currentView.contains("?")) {
+            currentView += "&";
+        } else {
+            currentView += "?";
+        }
+        currentView += "faces-redirect=true";
+
+        return currentView;
+    }
+
     public static String getCurrentViewId() {
         FacesContext context = FacesContext.getCurrentInstance();
         return context.getViewRoot().getViewId();
@@ -108,6 +126,11 @@ public class SessionUtility {
         Map sessionMap = FacesContext.getCurrentInstance().getExternalContext().getSessionMap();
         sessionMap.clear();
     }
+    
+    public static void invalidateSession() {
+        ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();
+        context.invalidateSession();
+    }
 
     public static void navigateTo(String url) {
         FacesContext context = FacesContext.getCurrentInstance();
@@ -124,10 +147,20 @@ public class SessionUtility {
         ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
         externalContext.redirect(externalContext.getRequestContextPath() + url);
     }
+    
+    public static HttpSession getCurrentSession() { 
+        HttpSession session = (HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(false);
+        return session;
+    }
 
     public static int getSessionTimeoutInSeconds() {
-        HttpSession session = (HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(false);
+        HttpSession session = getCurrentSession(); 
         return session.getMaxInactiveInterval();
+    }
+    
+    public static long getLastAccessedTime() { 
+        HttpSession session = getCurrentSession(); 
+        return session.getLastAccessedTime(); 
     }
 
     public static void setLastSessionError(String error) {
@@ -160,17 +193,51 @@ public class SessionUtility {
         Map sessionMap = FacesContext.getCurrentInstance().getExternalContext().getSessionMap();
         return sessionMap.get(ROLE_KEY);
     }
-    
+
+    public static void setLastUsername(String lastUsername) {
+        Map sessionMap = FacesContext.getCurrentInstance().getExternalContext().getSessionMap();
+        sessionMap.put(LAST_USERNAME_KEY, (Object) lastUsername);
+    }
+
+    public static String getLastUsername() {
+        Map sessionMap = FacesContext.getCurrentInstance().getExternalContext().getSessionMap();
+        return (String) sessionMap.get(LAST_USERNAME_KEY);
+    }
+
+    public static void executeRemoteCommand(String commandName) {
+        PrimeFaces.current().executeScript(commandName);
+    }
+
     /**
      * Finds a named bean for local use within the current bean.
-     * 
-     * @param beanName Name of the named bean needed for further execution. 
-     * @return Named bean that has been requested. 
+     *
+     * @param beanName Name of the named bean needed for further execution.
+     * @return Named bean that has been requested.
      */
     @SuppressWarnings("unchecked")
     public static Object findBean(String beanName) {
         FacesContext context = FacesContext.getCurrentInstance();
         return (Object) context.getApplication().evaluateExpressionGet(context, "#{" + beanName + "}", Object.class);
+    }
+    
+    public static Object findFacade(String facadeName) {
+        try {
+            InitialContext context = new InitialContext();
+            
+            if (FACADE_LOOKUP_STRING_START == null) {
+                String modName = (String) context.lookup(MODULE_NAME_LOOKUP);
+                FACADE_LOOKUP_STRING_START = JAVA_LOOKUP_START + modName + "/";                        
+            }
+            
+            return context.lookup(FACADE_LOOKUP_STRING_START + facadeName); 
+        } catch (NamingException ex) {
+            logger.error(ex);
+        }
+        return null; 
+    }
+    
+    public static boolean runningFaces() {
+        return FacesContext.getCurrentInstance() != null; 
     }
 
 }

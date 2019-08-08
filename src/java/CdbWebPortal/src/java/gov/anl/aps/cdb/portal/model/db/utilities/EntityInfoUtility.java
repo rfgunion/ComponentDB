@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/model/db/utilities/EntityInfoUtility.java $
- *   $Date: 2016-02-23 08:02:37 -0600 (Tue, 23 Feb 2016) $
- *   $Revision: 1068 $
- *   $Author: djarosz $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.utilities;
 
@@ -64,7 +59,15 @@ public class EntityInfoUtility {
         if (entityInfo == null) {
             return;
         }
-        UserInfo lastModifiedByUser = (UserInfo) SessionUtility.getUser();
+        UserInfo userInfo = (UserInfo) SessionUtility.getUser();
+        updateEntityInfo(entityInfo, userInfo);
+    }
+    
+    public static void updateEntityInfo(EntityInfo entityInfo, UserInfo userInfo) {
+        if (entityInfo == null) {
+            return;
+        }
+        UserInfo lastModifiedByUser = userInfo; 
         Date lastModifiedOnDateTime = new Date();
         entityInfo.setLastModifiedOnDateTime(lastModifiedOnDateTime);
         entityInfo.setLastModifiedByUser(lastModifiedByUser);

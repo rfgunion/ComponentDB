@@ -1,9 +1,24 @@
-#!/bin/sh
+#!/bin/bash
+
+# Copyright (c) UChicago Argonne, LLC. All rights reserved.
+# See LICENSE file.
+
 
 # CDB setup script for Bourne-type shells
 # This file is typically sourced in user's .bashrc file
 
-myDir=`dirname $BASH_SOURCE`
+if [ -n "$BASH_SOURCE" ]; then
+  input_param=$BASH_SOURCE
+elif [ -n "$ZSH_VERSION" ]; then
+  setopt function_argzero
+  input_param=$0
+else
+  echo 1>&2 "Unsupported shell. Please use bash or zsh."
+  exit 2
+fi
+
+myDir=`dirname $input_param`
+
 currentDir=`pwd` && cd $myDir
 if [ ! -z "$CDB_ROOT_DIR" -a "$CDB_ROOT_DIR" != `pwd` ]; then
     echo "WARNING: Resetting CDB_ROOT_DIR environment variable (old value: $CDB_ROOT_DIR)" 
@@ -40,7 +55,7 @@ if [ -z $CDB_VAR_DIR ]; then
 fi
 
 # Establish machine architecture and host name
-CDB_HOST_ARCH=`uname | tr [A-Z] [a-z]`-`uname -m` 
+CDB_HOST_ARCH="`uname | tr '[:upper:]' '[:lower:]'`-`uname -m`"
 CDB_SHORT_HOSTNAME=`hostname -s`
 
 # Check support setup
@@ -55,7 +70,7 @@ if [ ! -d $CDB_SUPPORT_DIR ]; then
     echo "Warning: $CDB_SUPPORT_DIR directory does not exist. Developers should point CDB_SUPPORT_DIR to the desired area." 
     #unset CDB_SUPPORT_DIR
 else
-    export CDB_GLASSFISH_DIR=$CDB_SUPPORT_DIR/glassfish/$CDB_HOST_ARCH
+    export CDB_GLASSFISH_DIR=$CDB_SUPPORT_DIR/payara/$CDB_HOST_ARCH
 fi
 
 # Add to path only if directory exists.
@@ -66,9 +81,11 @@ prependPathIfDirExists() {
     fi
 }
 
+prependPathIfDirExists $CDB_GLASSFISH_DIR/bin
 prependPathIfDirExists $CDB_SUPPORT_DIR/mysql/$CDB_HOST_ARCH/bin
 prependPathIfDirExists $CDB_SUPPORT_DIR/java/$CDB_HOST_ARCH/bin
 prependPathIfDirExists $CDB_SUPPORT_DIR/ant/bin
+prependPathIfDirExists $CDB_SUPPORT_DIR/netbeans/currentNetbeans/bin
 prependPathIfDirExists $CDB_ROOT_DIR/bin
 
 # Check if we have  local python

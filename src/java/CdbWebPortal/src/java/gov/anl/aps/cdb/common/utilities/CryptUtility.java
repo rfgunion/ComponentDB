@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/common/utilities/CryptUtility.java $
- *   $Date: 2015-04-16 10:32:53 -0500 (Thu, 16 Apr 2015) $
- *   $Revision: 589 $
- *   $Author: sveseli $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.common.utilities;
 
@@ -16,7 +11,7 @@ import java.util.Random;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import org.apache.log4j.Logger;
-import org.primefaces.util.Base64;
+import java.util.Base64;
 
 /**
  * Utility class for encrypting and verifying passwords.
@@ -82,7 +77,7 @@ public class CryptUtility {
         try {
             key = SecretKeyFactory.getInstance(SecretKeyFactoryType);
             byte[] hashedPassword = key.generateSecret(spec).getEncoded();
-            String encodedPassword = Base64.encodeToString(hashedPassword, true);
+            String encodedPassword = Base64.getEncoder().encodeToString(hashedPassword);
             return salt + SaltDelimiter + encodedPassword;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             // Should not happen

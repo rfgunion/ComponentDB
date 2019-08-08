@@ -1,12 +1,13 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.constants;
 
 public enum ItemElementRelationshipTypeNames {
-        itemLocation("Location");
+        itemLocation("Location"),
+        itemCableConnection("Cable Connection"),
+        template("Created From Template");
 
         private String value;
 

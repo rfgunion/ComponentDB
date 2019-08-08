@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
@@ -28,11 +32,13 @@
         </f:facet>
     </p:dialog>
 
-    <ui:include src="componentInventoryItemLocationSelectDialog.xhtml">
+    <ui:include src="../../locatableItem/private/locatableItemLocationSelectDialog.xhtml">
         <ui:param name="itemObject" value="#{itemDomainInventoryController.selectedItemBOMTreeNode.data.inventoryItem}" />
         <ui:param name="viewName" value="BOMEdit"/>
         <ui:param name="updateTarget" value="@form:inventoryItemEditBOMViewPanelGrid" />
     </ui:include>
+    
+    <ui:include src="itemDomainInventoryBillOfMaterialsOptionalRemovalConfirmDialog.xhtml" />
 
     <p:remoteCommand name="prepareEditInventoryItem"
                      onstart="PF('loadingDialog').show()"

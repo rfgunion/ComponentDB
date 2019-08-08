@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+
+    <ui:param name="travelerInstanceSaveFromMultiEditScreen" 
+              value="#{travelerInstanceSaveFromMultiEditScreen != null 
+                       ? travelerInstanceSaveFromMultiEditScreen 
+                       : false }" />
+
+    <ui:param name="travelerInstanceSuccessUpdateTarget" 
+              value="#{travelerInstanceSuccessUpdateTarget != null 
+                       ? travelerInstanceSuccessUpdateTarget 
+                       : 'travelerInstanceListDataTable'}" />
+
+    <p:dialog id="travelerInstanceAddDialog" 
+              widgetVar="travelerInstanceAddDialogWidget" 
+              header="Create Traveler Instance From Template" 
+              resizable="false"
+              modal="true"
+              styleClass="viewTransparentBackgroundDialog"
+              onShow="PF('#{viewName}TravelerInstanceDataTableWidget').filter()">
+        
+        <p:outputPanel rendered="#{itemTravelerDomainInventoryController.renderAddNewTravelerDialog}">
+            <ui:include src="travelerInstanceCreateConfiguration.xhtml" />
+        </p:outputPanel>
+
+        <f:facet name="footer">
+            <p:outputPanel rendered="#{!travelerInstanceSaveFromMultiEditScreen}">
+                <p:commandButton value="Create Traveler Instance Using Selection"
+                                 onstart="PF('loadingDialog').show();"
+                                 onerror="PF('loadingDialog').hide();"
+                                 process="@form:travelerInstanceAddDialog"
+                                 oncomplete="PF('loadingDialog').hide();"
+                                 action="#{itemTravelerDomainInventoryController.createTravelerInstance(
+                                           entityController,
+                                           'successTravelerInstanceAddDialog();')}" />
+            </p:outputPanel>
+            <p:outputPanel rendered="#{travelerInstanceSaveFromMultiEditScreen}">                
+                <p:commandButton value="Create Traveler Instance Using Selection and Save Item"
+                                 onstart="PF('loadingDialog').show();"
+                                 onerror="PF('loadingDialog').hide();"
+                                 process="@form:travelerInstanceAddDialog"
+                                 oncomplete="PF('loadingDialog').hide();"
+                                 action="#{itemTravelerDomainInventoryController.saveMultiEditTravelerInstance(
+                                           'successTravelerInstanceAddDialog();')}" />
+            </p:outputPanel>
+        </f:facet>       
+
+        <p:remoteCommand name="successTravelerInstanceAddDialog"
+                         oncomplete="PF('travelerInstanceAddDialogWidget').hide();"
+                         update="#{travelerInstanceSuccessUpdateTarget}"/>        
+    </p:dialog>
+
+
+
+</ui:composition>
+

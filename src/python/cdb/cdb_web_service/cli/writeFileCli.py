@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from cdbWebServiceSessionCli import CdbWebServiceSessionCli
 from cdb.cdb_web_service.api.fileSystemRestApi import FileSystemRestApi
 from cdb.common.exceptions.invalidRequest import InvalidRequest

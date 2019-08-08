@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
@@ -19,7 +23,8 @@
             </ui:include>
         </p:outputPanel>
         <f:facet name="footer" class="dialog">
-            <p:commandButton  action="#{itemDomainInventoryController.createSaveFromDialog('addInventoryItemSuccess()')}" 
+            <p:commandButton  action="#{itemDomainInventoryController.createSaveFromDialog('addInventoryItemSuccess()')}"
+                              id="addInventoryItemDialogWidgetSaveButton"
                               value="Save" alt="Save" icon="ui-icon-check"/>
 
             <p:commandButton action="#{itemDomainInventoryController.createCancelFromDialog()}" 
@@ -28,13 +33,14 @@
                              update="@form"
                              icon="ui-icon-cancel" />
 
-            <p:remoteCommand name="addInventoryItemSuccess"
+            <p:remoteCommand name="addInventoryItemSuccess"                             
+                             actionListener="#{itemDomainCatalogController.completeSucessfulDerivedFromItemCreation()}"
                              update="@form"
-                             onstart="PF('addInventoryItemDialogWidget').hide()" />           
+                             onstart="PF('addInventoryItemDialogWidget').hide()" />
         </f:facet>
     </p:dialog>
 
-    <ui:include src="../../itemDomainInventory/private/componentInventoryItemLocationSelectDialog.xhtml">
+    <ui:include src="../../locatableItem/private/locatableItemLocationSelectDialog.xhtml">
         <ui:param name="itemObject" value="#{itemDomainInventoryController.selectedItemBOMTreeNode.data.inventoryItem}" />
         <ui:param name="viewName" value="BOMEdit"/>
         <ui:param name="updateTarget" value="@form:inventoryItemEditBOMViewOutputPanel" />

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -18,17 +22,21 @@
     </ui:define>
 
     <ui:param name="entityTypeName" value="#{entityController.entityTypeName}" />
-    
+    <ui:param name="entitySettingObject" value="#{entityController.settingObject}" />
+
     <ui:define name="pageTitle">: View #{entityController.displayEntityTypeName} #{entityController.currentItemDisplayTitle}</ui:define> 
 
     <ui:define name="middleCenter">
         <h:form id="#{entityTypeName}ViewForm" rendered="#{pageRendered}">
+            <ui:param name="formName" 
+                      value="#{entityTypeName}ViewForm" /> 
             <div class="domainEntityLeftContent middleCenterLeftContent">
                 <ui:param name="itemObject" value="#{entityController.current}"/>
+                <ui:param name="currentObject" value="#{itemObject}" />
                 <div class="pageTitle">
                     <h1><ui:insert name="pageTitle"/></h1>
                 </div>
-                
+
                 <!-- Included for easy code readability in use such as item element list. enityController is very generic-->
                 <ui:param name="currentItemController" value="#{entityController}" />
                 <ui:param name="domainEntityObject" value="#{itemObject}" />
@@ -53,39 +61,56 @@
                 </p:panel>
 
                 <p:panel header="Log Entries" 
+                         id="#{entityTypeName}ViewLogEntriesPanel"
                          rendered="#{entityController.entityDisplayItemLogs}"
                          toggleable="true" 
                          collapsed="#{!entityController.displayLogList}">
                     <ui:insert name="itemLogs" />
                 </p:panel>
 
+                <p:panel header="Connectors"
+                         id="#{entityTypeName}ViewConnectorsPanel"
+                         toggleable="true"
+                         rendered="#{entityController.entityDisplayItemConnectors and resources.EnabledConnectorAndConnectionsFunctionality}"
+                         collapsed="#{!entityController.displayItemConnectorList}">
+                    <ui:insert name="itemConnectors" />
+                </p:panel>
+
+
                 <ui:insert name="additionalLeftItemPanels"/>
             </div>
 
             <div class="domainEntityRightContent">
-                <p:panel header="Properties" 
+                <p:panel header="Properties"
+                         id="#{entityTypeName}ViewPropertiesPanel"
                          rendered="#{entityController.entityDisplayItemProperties}"
                          toggleable="true" 
                          collapsed="#{!entityController.displayPropertyList}">
                     <ui:insert name="itemProperties"/>
                 </p:panel>
+                <ui:insert name="itemPropertiesSupport" />
 
-                <p:panel header="Elements"
-                         rendered="#{entityController.entityDisplayItemElements}"
+                <ui:insert name="additonalPluginSections" />
+
+                <p:panel header="#{currentItemController.itemElementsListTitle}"
+                         id="#{entityTypeName}ViewElementsPanel"
+                         rendered="#{entityController.renderItemElementList}"
                          toggleable="true" 
                          collapsed="#{!entityController.displayItemElementList}">
-                    <ui:insert name="itemElements" />
+                    <ui:insert name="itemElements" />                    
                 </p:panel>
-                
+
                 <p:panel header="Sources" 
+                         id="#{entityTypeName}ViewSourcesPanel"
                          rendered="#{entityController.entityDisplayItemSources}"
                          toggleable="true" 
                          collapsed="#{!entityController.displayItemSourceList}">
                     <ui:insert name="itemSources" />
                 </p:panel>
-                
-                <p:panel header="#{entityController.itemsDerivedFromItemTitle}" 
-                         rendered="#{entityController.entityDisplayItemsDerivedFromItem}"
+
+                 <p:panel header="#{entityController.itemsDerivedFromItemTitle}" 
+                         id="#{entityTypeName}ViewItemsDerviedFromItemPanel"
+                         rendered="#{entityController.renderDerivedFromItemList}"
                          toggleable="true" 
                          collapsed="#{!entityController.displayDerivedFromItemList}">
                     <ui:insert name="derivedFromItems" />
@@ -97,9 +122,16 @@
                          collapsed="#{!entityController.displayItemMembership}">
                     <ui:insert name="itemMemberships" />
                 </p:panel>
-                
+
+                <p:panel header="Created From Template"
+                         rendered="#{entityController.displayCreatedFromCurrentItemList}"
+                         toggleable="true"
+                         collapsed="#{entityController.displayContentsOfCreatedFromTemplateItem}">
+                    <ui:include src="../itemListCreatedFromTemplateDataTable.xhtml" /> 
+                </p:panel>
+
                 <ui:insert name="additionalRightItemPanels"/>
-                
+
                 <ui:insert name="additionalViewItemContent"/>
             </div>
 

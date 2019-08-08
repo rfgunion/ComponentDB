@@ -1,26 +1,21 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL$
- *   $Date$
- *   $Revision$
- *   $Author$
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.controllers;
 
 import gov.anl.aps.cdb.portal.model.db.beans.SettingTypeFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.SettingEntity;
 import gov.anl.aps.cdb.portal.model.db.entities.SettingType;
-import gov.anl.aps.cdb.portal.model.db.entities.UserInfo;
-import gov.anl.aps.cdb.portal.model.db.entities.UserSetting;
 import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
@@ -32,11 +27,12 @@ import org.apache.log4j.Logger;
 /**
  * Search controller.
  */
-@Named("searchController")
+@Named(SearchController.controllerNamed)
 @SessionScoped
-public class SearchController implements Serializable {
-
+public class SearchController implements Serializable {   
+    
     private final String SETTING_CONTROLLER_NAME = "settingController";
+    public static final String controllerNamed = "searchController";
 
     /* 
      * Controller specific settings
@@ -77,7 +73,7 @@ public class SearchController implements Serializable {
     protected Boolean displayUserGroups = null;
 
     private Boolean performSearch = false;
-    private Boolean performExternallyInitializedSearch = false; 
+    private Boolean performExternallyInitializedSearch = false;
 
     private List<SettingType> settingTypeList;
     private Map<String, SettingType> settingTypeMap;
@@ -86,11 +82,14 @@ public class SearchController implements Serializable {
 
     private SettingController settingController = null;
     protected Date settingsTimestamp = null;
+    
+    private Set<CdbEntityController> searchableControllers; 
 
     /**
      * Constructor.
      */
     public SearchController() {
+        searchableControllers = new HashSet<>(); 
     }
 
     @PostConstruct
@@ -98,27 +97,43 @@ public class SearchController implements Serializable {
         updateSettings();
     }
     
+    public static SearchController getInstance() {
+        return (SearchController) SessionUtility.findBean(controllerNamed);
+    }
+    
+    public void registerSearchableController(CdbEntityController entityController) {
+        searchableControllers.add(entityController);         
+    }
+
     public String performInputBoxSearch() {
         if (searchString == null || searchString.isEmpty()) {
             SessionUtility.addWarningMessage("Warning", "Please specify a search entry.");
-            return null; 
+            return null;
         }
-        performExternallyInitializedSearch = true; 
+        performExternallyInitializedSearch = true;
         return "/views/search/search.xhtml?faces-redirect=true";
     }
-    
+
     public String getInputBoxSearchString() {
-        return ""; 
+        return "";
+    }
+
+    public void setInputBoxSearchString(String searchString) {
+        this.searchString = searchString;
     }
     
-    public void setInputBoxSearchString(String searchString) {
-        this.searchString = searchString; 
+    public void prepareSearch() {
+        if (searchString != null && !searchString.isEmpty()) {
+            performSearch = true;
+            performExternallyInitializedSearch = false;
+        }
     }
 
     public void search() {
-        if (searchString != null && !searchString.isEmpty()) {
-            performSearch = true;
-            performExternallyInitializedSearch = false; 
+        if (performSearch) {
+            for (CdbEntityController controller : searchableControllers) {                
+                controller.performEntitySearch(searchString, caseInsensitive);                
+            }
         }
     }
 
@@ -204,6 +219,10 @@ public class SearchController implements Serializable {
         }
 
         return false;
+    }
+
+    public void updateSettingsAction() {
+        updateSettings();
     }
 
     public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
@@ -358,7 +377,7 @@ public class SearchController implements Serializable {
     public void setDisplayItemElements(Boolean displayItemElements) {
         this.displayItemElements = displayItemElements;
     }
-    
+
     public Boolean getDisplayPropertyTypes() {
         return displayPropertyTypes;
     }

@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/common/constants/CdbStatus.java $
- *   $Date: 2015-07-22 11:53:17 -0500 (Wed, 22 Jul 2015) $
- *   $Revision: 679 $
- *   $Author: djarosz $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.common.constants;
 

@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/utilities/DmNoCacheFilter.java $
- *   $Date: 2015-06-09 12:47:21 -0500 (Tue, 09 Jun 2015) $
- *   $Revision: 652 $
- *   $Author: sveseli $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.utilities;
 

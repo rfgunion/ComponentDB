@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -10,7 +14,7 @@
                  widgetVar="userSettingEditListDataTableWidget" 
                  var="userSettingObject" 
                  value="#{userInfoObject.userSettingList}" 
-                 rows="#{userSettingController.displayNumberOfItemsPerPage}"
+                 rows="#{userSettingSettingObject.displayNumberOfItemsPerPage}"
                  editable="true"
                  paginator="true" 
                  paginatorAlwaysVisible="false" 
@@ -18,13 +22,13 @@
 
         <p:column sortBy="#{userSettingObject.settingType.name}" headerText="Name"
                   filterBy="#{userSettingObject.settingType.name}" filterMatchMode="contains"
-                  filterValue="#{userSettingController.filterBySettingType}">
+                  filterValue="#{userSettingSettingObject.filterBySettingType}">
             <h:outputText value="#{userSettingObject.settingType.name}"/>
         </p:column>
 
         <p:column sortBy="#{userSettingObject.value}" headerText="Value"
                   filterBy="#{userSettingObject.value}" filterMatchMode="contains"
-                  filterValue="#{userSettingController.filterByValue}">
+                  filterValue="#{userSettingSettingObject.filterByValue}">
             <h:inputText value="#{userSettingObject.value}" styleClass="cellInput"/>
         </p:column>
 

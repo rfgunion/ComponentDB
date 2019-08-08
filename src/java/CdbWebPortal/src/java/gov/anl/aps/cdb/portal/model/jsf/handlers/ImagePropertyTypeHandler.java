@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/model/jsf/handlers/ImagePropertyTypeHandler.java $
- *   $Date: 2015-05-06 09:46:53 -0500 (Wed, 06 May 2015) $
- *   $Revision: 628 $
- *   $Author: sveseli $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.jsf.handlers;
 
@@ -31,9 +26,5 @@ public class ImagePropertyTypeHandler extends AbstractPropertyTypeHandler {
     public String getEditActionIcon() {
         return "ui-icon-circle-arrow-n";
     }
-
-    @Override
-    public String getEditActionBean() {
-        return "propertyValueImageUploadBean";
-    } 
+    
 }

@@ -1,0 +1,109 @@
+/*
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
+ */
+@import url("portal.css");
+
+.defaultBackground {
+    background: linear-gradient(to bottom right, #f7f7f2 0%, #d5ebf5 100%);
+}
+
+html, body {
+
+    background: linear-gradient(
+        rgba(247, 247, 242, .95), 
+        rgba(213, 235, 245, .98)),
+        /**https://flic.kr/p/a3YwWu**/
+        url(../images/aps-rendering.jpg);
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+
+#bottom {
+    background: linear-gradient(to bottom right, #f7f7f2 0%, #d5ebf5 100%);
+}
+
+.domainEntityRowExpansion {
+    background: linear-gradient(to bottom right, #f7f7f2 0%, #d5ebf5 100%);
+}
+
+input, textarea {
+    background: linear-gradient(to bottom right, #f7f7f2 0%, #d5ebf5 100%);
+}
+
+h1 {
+    color: #efeab9;
+}
+
+.ui-accordion .ui-accordion-content {
+    background: linear-gradient(to bottom right, #f7f7f2 0%, #d5ebf5 100%);
+}
+
+.ui-panelgrid .ui-panelgrid-cell {
+    background: transparent; 
+}
+
+.ui-panel {
+    border: 0px; 
+    background: transparent; 
+}
+
+@media (min-width: 1000px) {
+    .listConfigurationPanel {
+        width: 49%; 
+        display: inline-block;
+        vertical-align: top;        
+    }    
+    
+    .listConfigurationLeftPanel {
+        padding-right: .5%; 
+    }
+    
+    .listConfigurationRightPanel {
+        padding-left: .5%; 
+    }
+}
+
+.machineDesignListTreeTable .ui-blockui  {
+    background: black;
+}
+
+.machineDesignListTreeTable .ui-blockui-content  {
+    background: #d5ebf5c7;
+    left: 10%;
+    right: 10%;
+    top: 50px !important;
+}
+
+.machineDesignListTreeTable .ui-blockui-content .ui-outputpanel {
+    display: inline-block; 
+}
+
+.machineDesignListTreeTable .ui-blockui-content .ui-outputpanel .ui-outputpanel {
+    width: 100%; 
+}
+
+.machineDesignListTreeTable .ui-blockui-content .ui-outputpanel div {
+    display: table;   
+}
+
+.machineDesignListTreeTable .ui-blockui-content .ui-outputpanel div span {
+    display: table-cell;   
+    vertical-align: middle; 
+}
+
+@media (min-width:1875px){
+    .detailsPanelViewDetailsPanel {
+        width: 44%;
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .detailsPanelViewGalleryPanel { 
+        width: 54%;
+        display: inline-block;
+        min-width: 478.75px; 
+        vertical-align: top;
+    }
+}

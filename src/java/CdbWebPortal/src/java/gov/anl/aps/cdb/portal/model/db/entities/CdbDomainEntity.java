@@ -1,10 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerFactory;
 import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerInterface;
 import java.util.ArrayList;
@@ -17,8 +17,11 @@ import java.util.List;
  */
 public abstract class CdbDomainEntity extends CdbEntity {
 
+    @JsonIgnore
     private transient List<PropertyValue> imagePropertyList = null;
+    @JsonIgnore
     protected transient List<PropertyValue> propertyValueDisplayList = null; 
+    @JsonIgnore
     protected transient List<PropertyValue> propertyValueInternalList = null; 
     
     private transient final HashMap<Integer, PropertyValueInformation> propertyValueCacheMap = new HashMap<>();
@@ -35,10 +38,14 @@ public abstract class CdbDomainEntity extends CdbEntity {
             propertyTypeIdIndexMap.put(index, propertyTypeId);
         }
     }
+    
+    public abstract void addPropertyValueToPropertyValueList(PropertyValue propertyValue); 
 
     public List<PropertyValue> getPropertyValueList() {
         return null;
     }
+    
+    public abstract void setPropertyValueList(List<PropertyValue> propertyValueList);
     
     public List<PropertyValue> getPropertyValueDisplayList() {
         return getPropertyValueList();
@@ -120,6 +127,7 @@ public abstract class CdbDomainEntity extends CdbEntity {
         }
     }
 
+    @JsonIgnore
     public String getPropertyValue1() {
         return getPropertyValueByIndex(1);
     }
@@ -128,6 +136,7 @@ public abstract class CdbDomainEntity extends CdbEntity {
         setPropertyValueByIndex(1, propertyValue1);
     }
 
+    @JsonIgnore
     public String getPropertyValue2() {
         return getPropertyValueByIndex(2);
     }
@@ -136,6 +145,7 @@ public abstract class CdbDomainEntity extends CdbEntity {
         setPropertyValueByIndex(2, propertyValue2);
     }
 
+    @JsonIgnore
     public String getPropertyValue3() {
         return getPropertyValueByIndex(3);
     }
@@ -144,6 +154,7 @@ public abstract class CdbDomainEntity extends CdbEntity {
         setPropertyValueByIndex(3, propertyValue3);
     }
 
+    @JsonIgnore
     public String getPropertyValue4() {
         return getPropertyValueByIndex(4);
     }
@@ -152,6 +163,7 @@ public abstract class CdbDomainEntity extends CdbEntity {
         setPropertyValueByIndex(4, propertyValue4);
     }
 
+    @JsonIgnore
     public String getPropertyValue5() {
         return getPropertyValueByIndex(5);
     }
@@ -171,6 +183,7 @@ public abstract class CdbDomainEntity extends CdbEntity {
             this.filterValue = ""; 
         }
          
+        @JsonIgnore
         public List<PropertyValue> getPropertyValueList() {
             return propertyValueList;
         }

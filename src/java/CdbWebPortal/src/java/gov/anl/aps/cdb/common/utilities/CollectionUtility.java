@@ -1,14 +1,10 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/common/utilities/CollectionUtility.java $
- *   $Date: 2015-04-16 10:32:53 -0500 (Thu, 16 Apr 2015) $
- *   $Revision: 589 $
- *   $Author: sveseli $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.common.utilities;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import javax.faces.model.SelectItem;
@@ -106,5 +102,26 @@ public class CollectionUtility {
                 iterator.remove();
             }
         }
+    }
+    
+    /**
+     * Compares if two lists are different.
+     *
+     * @param originalList
+     * @param listToCompare
+     * @return
+     */
+    public static boolean isListDifferent(List<Object> originalList, List<Object> listToCompare) {
+        Boolean listIsDifferent = true;
+        if (originalList == null
+                || listToCompare.size() == originalList.size()) {
+            List<Object> test = new ArrayList<>(listToCompare);
+            if (originalList != null) {
+                test.removeAll(originalList);
+            }
+
+            listIsDifferent = !test.isEmpty();
+        }
+        return listIsDifferent;
     }
 }

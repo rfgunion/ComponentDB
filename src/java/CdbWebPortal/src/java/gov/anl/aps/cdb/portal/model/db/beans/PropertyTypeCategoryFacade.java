@@ -1,11 +1,11 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.beans;
 
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeCategory;
+import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -30,13 +30,13 @@ public class PropertyTypeCategoryFacade extends CdbEntityFacade<PropertyTypeCate
     public PropertyTypeCategoryFacade() {
         super(PropertyTypeCategory.class);
     }
-    
+
     @Override
     public List<PropertyTypeCategory> findAll() {
         return (List<PropertyTypeCategory>) em.createNamedQuery("PropertyTypeCategory.findAll")
                 .getResultList();
     }
-    
+
     public PropertyTypeCategory findByName(String name) {
         try {
             return (PropertyTypeCategory) em.createNamedQuery("PropertyTypeCategory.findByName")
@@ -56,5 +56,24 @@ public class PropertyTypeCategoryFacade extends CdbEntityFacade<PropertyTypeCate
         }
         return null;
     }
+
+    public List<PropertyTypeCategory> findRelevantCategoriesByDomainId(String domainName) {
+        if (domainName != null) {
+            List<Integer> ids = (List<Integer>) em.createNamedQuery("PropertyTypeCategory.findCategoryIdsForRelevantDomain")
+                    .setParameter("domainName", domainName)
+                    .getResultList();
+
+            if (ids != null && ids.size() > 0) {
+                return (List<PropertyTypeCategory>) em.createNamedQuery("PropertyTypeCategory.findByIds")
+                        .setParameter("ids", ids)
+                        .getResultList();
+            }
+        }
+        return null;
+    }
     
+    public static PropertyTypeCategoryFacade getInstance() {
+        return (PropertyTypeCategoryFacade) SessionUtility.findFacade(PropertyTypeCategoryFacade.class.getSimpleName()); 
+    }
+
 }

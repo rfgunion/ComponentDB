@@ -1,19 +1,23 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import gov.anl.aps.cdb.portal.constants.ItemDomainName;
 import gov.anl.aps.cdb.portal.model.db.utilities.EntityInfoUtility;
 import gov.anl.aps.cdb.portal.utilities.SearchResult;
+import gov.anl.aps.cdb.portal.view.objects.ItemElementConstraintInformation;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -51,7 +55,19 @@ import org.primefaces.model.TreeNode;
     @NamedQuery(name = "ItemElement.findByDescription",
             query = "SELECT i FROM ItemElement i WHERE i.description = :description"),
     @NamedQuery(name = "ItemElement.findBySortOrder",
-            query = "SELECT i FROM ItemElement i WHERE i.sortOrder = :sortOrder"),
+            query = "SELECT i FROM ItemElement i WHERE i.sortOrder = :sortOrder"),})
+@JsonIgnoreProperties(value = {  
+    "itemCanHaveInventoryItem",
+    "catalogDisplayString",
+    "inventoryDisplayString",
+    "machineDesignDisplayString",
+    "constraintInformation",
+    "catalogItem",
+    "inventoryItem",
+    "machineDesignItem",
+    "temporaryIsRequiredValue",
+    "customizableSortOrder",
+    "childItemElementListTreeTableRootNode"
 })
 public class ItemElement extends CdbDomainEntity implements Serializable {
 
@@ -82,7 +98,7 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
     @JoinTable(name = "item_element_log", joinColumns = {
         @JoinColumn(name = "item_element_id", referencedColumnName = "id")}, inverseJoinColumns = {
         @JoinColumn(name = "log_id", referencedColumnName = "id")})
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @OrderBy("enteredOnDateTime DESC")
     private List<Log> logList;
     @JoinColumn(name = "parent_item_id", referencedColumnName = "id")
@@ -93,11 +109,14 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
     @JoinColumn(name = "derived_from_item_element_id", referencedColumnName = "id")
     @ManyToOne
     private ItemElement derivedFromItemElement;
-    @JoinColumn(name = "contained_item_id", referencedColumnName = "id")
+    @JoinColumn(name = "contained_item_id1", referencedColumnName = "id")
     @ManyToOne(cascade = CascadeType.MERGE)
-    private Item containedItem;
+    private Item containedItem1;
+    @JoinColumn(name = "contained_item_id2", referencedColumnName = "id")
+    @ManyToOne(cascade = CascadeType.MERGE)
+    private Item containedItem2;
     @JoinColumn(name = "entity_info_id", referencedColumnName = "id")
-    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     private EntityInfo entityInfo;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "firstItemElement")
     private List<ItemElementRelationshipHistory> itemElementRelationshipHistoryList;
@@ -114,6 +133,21 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
 
     private static transient Integer sortByPropertyTypeId = null;
     private transient TreeNode childItemElementListTreeTableRootNode = null;
+    private transient ItemElementConstraintInformation constraintInformation;
+
+    // <editor-fold defaultstate="collapsed" desc="Machine Design Element Variables"> 
+    private transient Item catalogItem;
+    private transient Item inventoryItem;
+    private transient ItemDomainMachineDesign machineDesignItem;
+    private transient String catalogDisplayString; 
+    private transient String inventoryDisplayString; 
+    private transient String machineDesignDisplayString; 
+    private transient boolean loadedCatalogInventoryMachineDesignItem = false;
+    private transient boolean itemCanHaveInventoryItem = false; 
+    // </editor-fold>
+
+    // Helper variable used to ensure proper procedure is executed if the attribute changes. 
+    private transient Boolean temporaryIsRequiredValue = null;
 
     public ItemElement() {
     }
@@ -125,7 +159,7 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
         this.setDerivedFromItemElement(derivedFromItemElement);
 
     }
-    
+
     public void init(Item parentItem) {
         init(parentItem, null);
     }
@@ -149,6 +183,12 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
 
     public Object getCustomizableSortOrder() {
         if (sortByPropertyTypeId == null) {
+            if (derivedFromItemElement != null && parentItem != null) {
+                String inventoryDomain = ItemDomainName.inventory.getValue();
+                if (parentItem.getDomain().getName().equals(inventoryDomain)) {
+                    return derivedFromItemElement.getSortOrder();
+                }
+            }
             return getSortOrder();
         } else {
             return getPropertyValue(sortByPropertyTypeId);
@@ -162,7 +202,7 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
     public String getName() {
         if (name == null || name.isEmpty()) {
             if (derivedFromItemElement != null) {
-                return derivedFromItemElement.getName(); 
+                return derivedFromItemElement.getName();
             }
         }
         return name;
@@ -178,6 +218,17 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
 
     public void setIsRequired(Boolean isRequired) {
         this.isRequired = isRequired;
+    }
+
+    public Boolean getTemporaryIsRequiredValue() {
+        if (temporaryIsRequiredValue == null) {
+            temporaryIsRequiredValue = isRequired;
+        }
+        return temporaryIsRequiredValue;
+    }
+
+    public void setTemporaryIsRequiredValue(Boolean temporaryIsRequiredValue) {
+        this.temporaryIsRequiredValue = temporaryIsRequiredValue;
     }
 
     public String getDescription() {
@@ -203,6 +254,15 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
 
     public void setListList(List<ListTbl> listList) {
         this.listList = listList;
+    }
+
+    @Override
+    public void addPropertyValueToPropertyValueList(PropertyValue propertyValue) {
+        propertyValue.addItemElementToItemElementList(this);
+        if (propertyValueList == null) {
+            propertyValueList = new ArrayList<>();
+        }
+        propertyValueList.add(0, propertyValue);
     }
 
     @Override
@@ -254,11 +314,21 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
 
     @XmlTransient
     public Item getContainedItem() {
-        return containedItem;
+        return containedItem1;
     }
 
     public void setContainedItem(Item containedItem) {
-        this.containedItem = containedItem;
+        resetCatalogInventoryMachineDesingItems(); 
+        this.containedItem1 = containedItem;
+    }
+    
+    @XmlTransient
+    public Item getContainedItem2() {
+        return containedItem2;
+    }
+
+    public void setContainedItem2(Item containedItem2) {
+        this.containedItem2 = containedItem2;
     }
 
     @Override
@@ -331,32 +401,125 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
     public void setChildItemElementListTreeTableRootNode(TreeNode childItemElementListTreeTableRootNode) {
         this.childItemElementListTreeTableRootNode = childItemElementListTreeTableRootNode;
     }
+
+    public ItemElementConstraintInformation getConstraintInformation() {
+        return constraintInformation;
+    }
+
+    public void setConstraintInformation(ItemElementConstraintInformation constraintInformation) {
+        this.constraintInformation = constraintInformation;
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="Machine Design Logic">  
+    private void resetCatalogInventoryMachineDesingItems() {
+        loadedCatalogInventoryMachineDesignItem = false;        
+        itemCanHaveInventoryItem = false;
+        catalogItem = null;
+        inventoryItem = null;
+        machineDesignItem = null;
+        catalogDisplayString = null;
+        inventoryDisplayString = null;
+        machineDesignDisplayString = null; 
+    }
+
+    private void loadCatalogInventoryMachineDesignItems() {
+        if (!loadedCatalogInventoryMachineDesignItem) {
+            if (containedItem2 != null) {
+                Domain domain = containedItem2.getDomain();
+                switch (domain.getId()) {
+                    case ItemDomainName.CATALOG_ID:
+                        catalogItem = containedItem2;
+                        machineDesignDisplayString = "N/A";
+                        catalogDisplayString = catalogItem.toString();
+                        itemCanHaveInventoryItem = true;
+                        break;
+                    case ItemDomainName.INVENTORY_ID:
+                        inventoryItem = containedItem2;
+                        catalogItem = containedItem2.getDerivedFromItem();
+                        machineDesignDisplayString = "N/A";
+                        catalogDisplayString = catalogItem.toString();
+                        inventoryDisplayString = inventoryItem.getName(); 
+                        itemCanHaveInventoryItem = true;
+                        break;
+                    case ItemDomainName.MACHINE_DESIGN_ID:
+                        machineDesignItem = (ItemDomainMachineDesign) containedItem1;
+                        machineDesignDisplayString = machineDesignItem.toString(); 
+                        catalogDisplayString = "N/A";
+                        inventoryDisplayString = "N/A";
+                        itemCanHaveInventoryItem = false;                         
+                        break;
+                    default:
+                        break;
+                }
+            }
+            loadedCatalogInventoryMachineDesignItem = true;
+        }
+    }
+    
+    public boolean getItemCanHaveInventoryItem() {
+        return itemCanHaveInventoryItem; 
+    }
+
+    public Item getCatalogItem() {        
+        loadCatalogInventoryMachineDesignItems();        
+        return catalogItem;
+    }
+
+    public Item getInventoryItem() {        
+        loadCatalogInventoryMachineDesignItems();       
+        return inventoryItem;
+    }
+
+    public void setInventoryItem(Item inventoryItem) {
+        this.inventoryItem = inventoryItem;
+    }
+
+    public ItemDomainMachineDesign getMachineDesignItem() {
+        loadCatalogInventoryMachineDesignItems();
+        return machineDesignItem;
+    } 
+
+    public String getCatalogDisplayString() {
+        loadCatalogInventoryMachineDesignItems();
+        return catalogDisplayString;
+    }
+
+    public String getInventoryDisplayString() {
+        loadCatalogInventoryMachineDesignItems();
+        return inventoryDisplayString;
+    }
+
+    public String getMachineDesignDisplayString() {
+        loadCatalogInventoryMachineDesignItems();
+        return machineDesignDisplayString;
+    }
+    
+    // </editor-fold>
     
     @Override
     public SearchResult search(Pattern searchPattern) {
-        
+
         SearchResult searchResult;
-        
-        String identifier = ""; 
-        
+
+        String identifier = "";
+
         if (name != null) {
-            identifier = name;            
+            identifier = name;
         } else if (derivedFromItemElement != null && derivedFromItemElement.getName() != null) {
-            identifier = "Derived from: " + derivedFromItemElement.getName();            
-        } else if (parentItem != null && parentItem.getName() != null) { 
-            identifier = "Child of: " + parentItem.getName(); 
+            identifier = "Derived from: " + derivedFromItemElement.getName();
+        } else if (parentItem != null && parentItem.getName() != null) {
+            identifier = "Child of: " + parentItem.getName();
         }
-        
+
         searchResult = new SearchResult(id, identifier);
-        
-        searchResult.doesValueContainPattern("name", name, searchPattern); 
+
+        searchResult.doesValueContainPattern("name", name, searchPattern);
         searchResult.doesValueContainPattern("description", description, searchPattern);
-        
+
         if (derivedFromItemElement != null) {
             searchResult.doesValueContainPattern("derived from", derivedFromItemElement.getName(), searchPattern);
         }
-        
-        
+
         return searchResult;
     }
 
@@ -382,6 +545,10 @@ public class ItemElement extends CdbDomainEntity implements Serializable {
 
     @Override
     public String toString() {
+        if (name != null && name.isEmpty() == false) {
+            return name;
+        }
+
         return "gov.anl.aps.cdb.portal.model.db.entities.ItemElement[ id=" + id + " ]";
     }
 

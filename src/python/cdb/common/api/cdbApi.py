@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 import json
 from cdb.common.exceptions.cdbException import CdbException
 from cdb.common.utility.loggingManager import LoggingManager

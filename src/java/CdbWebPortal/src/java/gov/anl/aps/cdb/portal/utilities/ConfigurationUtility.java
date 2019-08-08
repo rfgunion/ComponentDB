@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/utilities/ConfigurationUtility.java $
- *   $Date: 2015-09-18 14:28:15 -0500 (Fri, 18 Sep 2015) $
- *   $Revision: 817 $
- *   $Author: djarosz $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.utilities;
 

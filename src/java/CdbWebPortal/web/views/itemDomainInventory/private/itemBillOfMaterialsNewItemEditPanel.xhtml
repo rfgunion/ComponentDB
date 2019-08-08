@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -24,7 +28,7 @@
         <ui:include src="../../item/private/templateDefaults/itemFieldEditValues/itemItemProject.xhtml"/>
         <ui:include src="../../item/private/templateDefaults/itemFieldHelpFragments/itemItemProject.xhtml"/>
         
-        <ui:include src="componentInventoryItemLocationSelection.xhtml" >
+        <ui:include src="../../locatableItem/private/locatableItemLocationSelection.xhtml" >
             <ui:param name="dialogViewName" value="BOMEdit"/>
         </ui:include>
         
@@ -48,7 +52,7 @@
             <ui:include src="../../item/private/templateDefaults/itemFieldEditValues/itemDescription.xhtml" />
             <ui:include src="../../item/private/templateDefaults/itemFieldHelpFragments/itemDescription.xhtml" />
 
-            <ui:include src="componentInventoryItemLocationDetails.xhtml"/>
+            <ui:include src="../../locatableItem/private/locatableItemLocationDetailsEditObject.xhtml"/>
             <ui:include src="../../item/private/templateDefaults/itemFieldHelpFragments/itemHelpFragment.xhtml">
                 <ui:param name="helpFragmentText"
                           value="Add additonal details to the current location of the item." />

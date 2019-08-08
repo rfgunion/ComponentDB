@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -9,9 +13,9 @@
 
     <f:metadata>
         <f:viewAction action="#{settingController.updateGlobalSettings()}" />
-        <f:event type="preRenderComponent" listener="#{itemElementController.processViewRequestParams}"/>
-        <f:event type="preRenderComponent" listener="#{propertyValueController.processPreRender()}"/>
-        <f:event type="preRenderComponent" listener="#{logController.processPreRender()}"/>
+        <f:viewAction action="#{itemElementController.processViewRequestParams}"/>
+        <f:viewAction action="#{propertyValueController.processPreRender()}"/>
+        <f:viewAction action="#{logController.processPreRender()}"/>
     </f:metadata>
 
     <ui:define name="pageTitle">: View Design Element #{itemElementController.selected.name}</ui:define> 
@@ -24,6 +28,7 @@
                 </div>
                 
                 <ui:param name="itemElementObject" value="#{itemElementController.selected}"/>
+                <ui:param name="currentObject" value="#{itemElementObject}" />
                 <ui:param name="entityController" value="#{itemElementController}"/>
                 <ui:param name="isEntityWriteable" value="#{loginController.isEntityWriteable(itemElementObject.entityInfo)}"/>
                 
@@ -52,7 +57,9 @@
 
             <div class="domainEntityRightContent">
                 <p:panel header="Properties" toggleable="true" collapsed="#{!entityController.displayPropertyList}">
-                    <ui:include src="../domainEntityProperty/private/domainEntityPropertyList.xhtml"/>
+                    <ui:include src="../domainEntityProperty/private/domainEntityPropertyList.xhtml">
+                        <ui:param name="loadPropertyListDialogs" value="#{false}" />
+                    </ui:include>
                 </p:panel>
                 
                 <p:panel header="Contained Item Properties" toggleable="true" >
@@ -62,20 +69,7 @@
                     </ui:include>
                 </p:panel>
                 
-                
-                <ui:remove>
-                    <p:panel header="Component Properties" 
-                             toggleable="true"
-                             rendered="#{itemElementController.getDisplayComponentProperties(itemElementObject)}">
-                        <ui:include src="../itemElementProperty/private/itemElementComponentPropertyList.xhtml"/>
-                    </p:panel>
-
-                    <p:panel header="Child Design Properties" 
-                             toggleable="true" 
-                             rendered="#{itemElementController.getDisplayChildDesignProperties(itemElementObject)}">
-                        <ui:include src="../itemElementProperty/private/itemElementChildDesignPropertyList.xhtml"/>
-                    </p:panel>
-                </ui:remove>
+                <ui:include src="../domainEntityProperty/private/domainEntityPropertyListDialogs.xhtml" />                                               
             </div>
 
         </h:form>

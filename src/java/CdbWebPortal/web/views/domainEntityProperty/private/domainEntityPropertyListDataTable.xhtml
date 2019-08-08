@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -10,6 +14,7 @@
     <ui:param name="entityTypeName" value="#{entityController.entityTypeName}" />
     <ui:param name="entityTypeDisplayName" value="#{entityController.displayEntityTypeName}" />
     <ui:param name="propertyValueDataList" value="#{entityObject.propertyValueDisplayList}" />
+    <ui:param name="propertyValueSettingObject" value="#{propertyValueController.settingObject}"/>
 
     <p:dataTable id="#{entityTypeName}PropertyListDataTable" 
                  widgetVar="#{entityTypeName}PropertyListDataTableWidget"
@@ -17,7 +22,7 @@
                  reflow="true"
                  value="#{propertyValueDataList}" 
                  filteredValue="#{entityController.filteredPropertyValueList}"
-                 rows="#{propertyValueController.displayNumberOfItemsPerPage}"
+                 rows="#{propertyValueSettingObject.displayNumberOfItemsPerPage}"
                  paginator="true" 
                  paginatorAlwaysVisible="false"
                  emptyMessage="No #{entityTypeDisplayName} properties found.">
@@ -32,23 +37,18 @@
                                onstart="PF('loadingDialog').show();"
                                oncomplete="PF('loadingDialog').hide();
                                            PF('propertyValueHistoryListDialogWidget').show()" 
-                               styleClass="ui-icon ui-icon-history" 
+                               styleClass="fa fa-link-icon fa-history" 
                                title="View property value history."
                                update="@form">
                     <f:setPropertyActionListener target="#{propertyValueHistoryController.selectedPropertyValue}" 
                                                  value="#{propertyValueObject}"/>
                     <p:tooltip for="#{entityTypeName}PropertyValueHistoryListViewButton" value="View property value history."/>
                 </p:commandLink>
-                <p:commandLink id="#{entityTypeName}PropertyInfoActionButton" 
-                               rendered="#{propertyValueObject.infoActionCommand != null}"
-                               styleClass="ui-icon ui-icon-info2" 
-                               title="View property info"
-                               onclick="#{entityTypeName}PropertyInfoAction#{propertyValueObject.id}()">
-                    <p:tooltip for="#{entityTypeName}PropertyInfoActionButton" value="View property info."/>
-                </p:commandLink>
+                
+                <ui:include src="../../propertyValue/private/propertyValueInfoActionButton.xhtml" /> 
 
-                <p:commandLink id="#{entityTypeName}PropertEditActionButton" 
-                               styleClass="ui-icon ui-icon-pencil" 
+                <p:commandLink id="#{entityTypeName}PropertyEditActionButton" 
+                               styleClass="fa fa-link-icon fa-pencil" 
                                title="Edit property"
                                action="#{entityController.setCurrentEditPropertyValue(propertyValueObject)}"
                                rendered="#{isEntityWriteable or (propertyValueObject.isUserWriteable and loginController.loggedIn)}"
@@ -57,8 +57,8 @@
                                onerror="PF('loadingDialog').hide();"
                                oncomplete="PF('loadingDialog').hide();
                                PF('#{entityTypeName}SinglePropertyEditDialogWidget').show()">
-                    <p:tooltip for="#{entityTypeName}PropertEditActionButton" value="Edit property."/>
-                </p:commandLink>   
+                    <p:tooltip for="#{entityTypeName}PropertyEditActionButton" value="Edit property."/>
+                </p:commandLink>                                
             </div>
         </p:column>       
     </p:dataTable>

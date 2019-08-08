@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -10,10 +14,10 @@
     <f:metadata>
         <f:viewAction action="#{settingController.updateGlobalSettings()}" />
         <f:viewAction action="#{itemDomainInventoryController.processCreateRequestParams}"/>
-        <f:event type="preRenderComponent" listener="#{logController.processPreRender()}"/>
+        <f:viewAction action="#{logController.processPreRender()}"/>
     </f:metadata>
 
-    <ui:param name="entityController" value="#{itemDomainInventoryController}"/>
+    <ui:param name="entityController" value="#{itemCreateWizardDomainInventoryController}"/>
 
     <ui:define name="additionalBasicInfo">
         <ui:include src="private/componentInventoryItemLocationEditPanelGrid.xhtml" />
@@ -34,7 +38,7 @@
     </ui:define>
     
     <ui:define name="additonalCreateItemContent">
-        <ui:include src="private/componentInventoryItemLocationSelectDialog.xhtml">
+        <ui:include src="../locatableItem/private/locatableItemLocationSelectDialog.xhtml">
             <ui:param name="itemObject" value="#{itemDomainInventoryController.selectedItemBOMTreeNode.data.inventoryItem}" />
             <ui:param name="viewName" value="BOMEdit"/>
         </ui:include>

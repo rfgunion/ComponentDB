@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -9,7 +13,7 @@
 
     <f:metadata>
         <f:viewAction action="#{settingController.updateGlobalSettings()}" />
-        <f:event type="preRenderComponent" listener="#{propertyTypeController.processEditRequestParams}"/>
+        <f:viewAction action="#{propertyTypeController.processEditRequestParams}"/>
     </f:metadata>
     
     <ui:define name="pageTitle">: Edit Property Type #{propertyTypeController.selected.name}</ui:define>      
@@ -28,11 +32,16 @@
             </div>
 
             <div class="middleCenterRightContent">
-                <p:accordionPanel multiple="false">
+                <p:accordionPanel multiple="true"
+                                  activeIndex="0,1">
                     <p:tab title="Allowed Property Values">
 
                         <ui:include src="../allowedPropertyValue/private/allowedPropertyValueEditList.xhtml"/>
 
+                    </p:tab>
+                    
+                    <p:tab title="Property Metadata Keys">                        
+                        <ui:include src="../propertyMetadata/private/propertyTypeMetadataEditList.xhtml" />
                     </p:tab>
                 </p:accordionPanel>
             </div>

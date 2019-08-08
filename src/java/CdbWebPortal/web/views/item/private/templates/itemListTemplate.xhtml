@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -9,10 +13,6 @@
         Please define the following variables: 
         - entityController 
     -->
-
-    <ui:define name="itemListSimpleView">
-        <ui:include src="../itemListFilterView.xhtml" />
-    </ui:define>
 
     <ui:define name="listActionButtons">
         <ui:include src="../itemListActionButtons.xhtml"/>
@@ -40,6 +40,10 @@
 
     <ui:define name="infoActionDialogs">    
         <ui:include src="../../../domainEntityProperty/private/domainEntityPropertyInfoActionDialogs.xhtml" />
+    </ui:define>
+    
+    <ui:define name="additionalListSupport">
+        <ui:include src="../../../propertyMetadata/private/propertyValueMetadataListDialog.xhtml" />
     </ui:define>
 
     <ui:define name="itemCloneDialog">

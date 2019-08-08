@@ -1,10 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "PropertyMetadata.findById", query = "SELECT p FROM PropertyMetadata p WHERE p.id = :id"),
     @NamedQuery(name = "PropertyMetadata.findByMetadataKey", query = "SELECT p FROM PropertyMetadata p WHERE p.metadataKey = :metadataKey"),
     @NamedQuery(name = "PropertyMetadata.findByMetadataValue", query = "SELECT p FROM PropertyMetadata p WHERE p.metadataValue = :metadataValue")})
-public class PropertyMetadata implements Serializable {
+public class PropertyMetadata extends PropertyMetadataBase implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -47,11 +47,12 @@ public class PropertyMetadata implements Serializable {
     private String metadataKey;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 64)
+    @Size(min = 0, max = 64)
     @Column(name = "metadata_value")
     private String metadataValue;
     @JoinColumn(name = "property_value_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonIgnore
     private PropertyValue propertyValue;
 
     public PropertyMetadata() {
@@ -75,6 +76,7 @@ public class PropertyMetadata implements Serializable {
         this.id = id;
     }
 
+    @Override
     public String getMetadataKey() {
         return metadataKey;
     }
@@ -83,6 +85,7 @@ public class PropertyMetadata implements Serializable {
         this.metadataKey = metadataKey;
     }
 
+    @Override
     public String getMetadataValue() {
         return metadataValue;
     }
@@ -131,6 +134,9 @@ public class PropertyMetadata implements Serializable {
 
     @Override
     public String toString() {
+        if (metadataValue != null && metadataKey != null) {
+            return "Key: " + metadataKey + " - Value: " + metadataValue;
+        }
         return "gov.anl.aps.cdb.portal.model.db.entities.PropertyMetadata[ id=" + id + " ]";
     }
     

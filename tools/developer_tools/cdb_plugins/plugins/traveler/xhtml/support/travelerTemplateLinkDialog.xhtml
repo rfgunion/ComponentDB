@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+    
+    <ui:param name="travelerSuccessUpdateTarget"
+              value="#{travelerSuccessUpdateTarget != null ? travelerSuccessUpdateTarget : 'travelerTemplateListDataTable'}" />
+
+    <p:dialog id="travelerTemplateLinkDialog" 
+              widgetVar="travelerTemplateLinkDialogWidget" 
+              header="Link to Existing Traveler Template" 
+              styleClass="viewTransparentBackgroundDialog"
+              modal="true"
+              resizable="false">
+        <ui:include src="travelerTemplateDataTable.xhtml">
+            <ui:param name="travelerTemplateList" value="#{itemTravelerDomainCatalogController.travelerTemplates}" />
+            <ui:param name="travelerSelectedValue" value="#{itemTravelerDomainCatalogController.selectedTemplate}" />
+            <ui:param name="dataTableId" value="travelerTemplatesDataTable" />
+            <ui:param name="travelerTemplateDoubleClickSelectionEvent" value="linkSelectedTravelerTemplate()" />
+        </ui:include> 
+
+        <f:facet name="footer">
+            <p:remoteCommand name="linkSelectedTravelerTemplate"
+                             action="#{itemTravelerDomainCatalogController.linkTravelerTemplate('successTravelerTemplateLinkDialog();')}"
+                             onstart="PF('loadingDialog').show();"
+                             onerror="PF('loadingDialog').hide();"
+                             oncomplete="PF('loadingDialog').hide();"
+                             />
+
+            <p:commandButton value='Link to selected template' 
+                             onstart="linkSelectedTravelerTemplate()"
+                             />            
+        </f:facet>
+        <p:remoteCommand name="showTravelerTemplateLinkDialog" 
+                         update="travelerTemplateLinkDialog"
+                         oncomplete="PF('travelerTemplateLinkDialogWidget').initPosition();
+                         PF('travelerTemplateLinkDialogWidget').show();
+                         PF('travelerTemplatesDataTableWidget').filter()"/>
+        <p:remoteCommand name="successTravelerTemplateLinkDialog"
+                         update="#{travelerSuccessUpdateTarget}"
+                         oncomplete="PF('loadingDialog').hide();
+                         PF('travelerTemplateLinkDialogWidget').hide();
+                         PF('travelerTemplateAddDialogWidget').hide();" />
+    </p:dialog>
+
+</ui:composition>
+

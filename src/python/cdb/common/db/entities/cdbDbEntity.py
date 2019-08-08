@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 import copy
 import types
+
+from sqlalchemy.orm.collections import InstrumentedList
+
 from cdb.common.exceptions.dbError import DbError
 from cdb.common.utility.loggingManager import LoggingManager
 
@@ -43,7 +52,7 @@ class CdbDbEntity(object):
         for (key,value) in scrubbedDict.items():
             if isinstance(value, CdbDbEntity):
                 scrubbedDict[key] = value.toCdbObject()
-            elif type(value) == types.ListType:
+            elif type(value) == types.ListType or type(value) == InstrumentedList:
                 scrubbedList = []
                 for item in value:
                     if isinstance(item, CdbDbEntity):

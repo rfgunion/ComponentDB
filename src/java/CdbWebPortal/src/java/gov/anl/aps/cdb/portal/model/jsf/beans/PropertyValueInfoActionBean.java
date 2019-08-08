@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.jsf.beans;
 
@@ -9,12 +8,8 @@ import java.io.Serializable;
 import javax.inject.Named;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyValue;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyValueHistory;
-import gov.anl.aps.cdb.portal.model.jsf.handlers.PdmLinkPropertyTypeHandler;
-import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerFactory;
-import gov.anl.aps.cdb.portal.model.jsf.handlers.TravelerInstancePropertyTypeHandler;
-import gov.anl.aps.cdb.portal.utilities.SessionUtility;
+import gov.anl.aps.cdb.portal.plugins.CdbPluginManager;
 import javax.enterprise.context.SessionScoped;
-import javax.faces.context.FacesContext;
 import org.apache.log4j.Logger;
 
 /**
@@ -30,8 +25,7 @@ public class PropertyValueInfoActionBean implements Serializable {
 
     private static final Logger logger = Logger.getLogger(PropertyValueInfoActionBean.class.getName());
 
-    private PdmLinkDrawingBean pdmLinkDrawingBean;
-    private TravelerBean travelerBean; 
+    private CdbPluginManager cdbPluginManager; 
 
     public PropertyValue getPropertyValue() {
         return propertyValue;
@@ -56,39 +50,12 @@ public class PropertyValueInfoActionBean implements Serializable {
     /**
      * Executes the appropriate function for the currently loaded property value into the bean.
      */
-    public void loadInfoActionForLoadedPropertyValue(){
-        //Check if propertyvalue is of type PDMLink 
-        if (PropertyTypeHandlerFactory.getHandler(propertyValue) instanceof PdmLinkPropertyTypeHandler) {
-            performPdmLinkLoad();
-        } else if (PropertyTypeHandlerFactory.getHandler(propertyValue) instanceof TravelerInstancePropertyTypeHandler) {
-            performTravelerInstanceLoad();
+    public void loadInfoActionForLoadedPropertyValue(){        
+        if (cdbPluginManager == null) {
+            cdbPluginManager = CdbPluginManager.getInstance();
         }
-    }
-
-    /**
-     * Sets the pdmLinkDrawingBean if needed, executes the required PdmLinkDrawingBean function to fetch data needed for dialog. 
-     */
-    private void performPdmLinkLoad() {
-        if (pdmLinkDrawingBean == null) {
-            pdmLinkDrawingBean = (PdmLinkDrawingBean) SessionUtility.findBean("pdmLinkDrawingBean");
-        }
-        logger.debug("Info action of type PDMLink, drawing #: " + value);
-        pdmLinkDrawingBean.resetDrawingInfo();
-        pdmLinkDrawingBean.getRelatedDrawings(value, propertyValue.getInfoActionCommand());
-    }
-    
-    /**
-     * Sets the travelerBean if needed, executes the required travelerBean function to fetch data needed for dialog. 
-     */
-    private void performTravelerInstanceLoad(){
-        if (travelerBean == null) {
-            travelerBean = (TravelerBean) SessionUtility.findBean("travelerBean");
-        }
-        logger.debug("Info action of type Traveler Instance, id: " + value);
-        
-        travelerBean.setPropertyValue(propertyValue);
-        travelerBean.loadCurrentTravelerInstance(propertyValue.getInfoActionCommand());
-    }
+        cdbPluginManager.loadInfoActionForPropertyValue(propertyValue);        
+    }      
 
     /**
      * Executes setPropertyValue function. 

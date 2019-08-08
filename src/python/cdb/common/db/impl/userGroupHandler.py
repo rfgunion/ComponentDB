@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from cdb.common.exceptions.objectAlreadyExists import ObjectAlreadyExists

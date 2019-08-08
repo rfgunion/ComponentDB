@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
@@ -20,7 +24,7 @@
         <p:tab title="All Items">
             <ui:include src="itemDomainCatalogInventoryListBasicView.xhtml"/>
         </p:tab>
-        <p:tab title="In Use: #{itemDomainCatalogController.inventoryNonSparesCount}">
+        <p:tab title="Non-Spares: #{itemDomainCatalogController.inventoryNonSparesCount}">
             <ui:include src="itemDomainCatalogInventoryListDataTable.xhtml">
                 <ui:param name="viewName" value="NonSpares" />
                 <ui:param name="itemListDataTableValue" value="#{itemDomainCatalogController.inventoryNonSparesList}" />

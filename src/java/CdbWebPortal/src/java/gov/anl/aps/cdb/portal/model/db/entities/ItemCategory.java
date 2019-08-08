@@ -1,10 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gov.anl.aps.cdb.common.utilities.StringUtility;
 import gov.anl.aps.cdb.portal.utilities.SearchResult;
 import java.io.Serializable;
@@ -55,6 +55,7 @@ public class ItemCategory extends ItemTypeCategoryEntity implements Serializable
     @Size(max = 256)
     private String description;
     @ManyToMany(mappedBy = "itemCategoryList")
+    @JsonIgnore
     private List<Item> itemList;
     @JoinColumn(name = "domain_id", referencedColumnName = "id")
     @ManyToOne
@@ -64,6 +65,7 @@ public class ItemCategory extends ItemTypeCategoryEntity implements Serializable
         @JoinColumn(name = "item_type_id", referencedColumnName = "id")})
     @ManyToMany
     @OrderBy("name ASC")
+    @JsonIgnore
     private List<ItemType> itemTypeList;
 
     private transient String itemTypeString = null;
@@ -114,6 +116,7 @@ public class ItemCategory extends ItemTypeCategoryEntity implements Serializable
         this.itemTypeList = itemTypeList;
     }
 
+    @JsonIgnore
     public String getItemTypeString() {
         if (itemTypeString == null) {
             itemTypeString = StringUtility.getStringifyCdbList(itemTypeList);
@@ -122,6 +125,7 @@ public class ItemCategory extends ItemTypeCategoryEntity implements Serializable
         return itemTypeString;
     }
 
+    @JsonIgnore
     public String getEditItemTypeString() {
         itemTypeString = getItemTypeString();
         if (itemTypeString.equals("-")) {

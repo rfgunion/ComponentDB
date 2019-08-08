@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -9,12 +13,14 @@
     <ui:param name="breadcrumb" value="#{itemSourceController.currentViewId}"/>
     <ui:param name="itemSourceDataList" value="#{itemObject.itemSourceList}" />
     
+    <ui:param name="itemSourceSettingObject" value="#{itemSourceController.settingObject}" />
+    
     <p:dataTable id="itemSourceListDataTable" 
                  widgetVar="itemSourceListWidget"
                  var="itemSourceObject" 
                  value="#{itemSourceDataList}" 
                  filteredValue="#{itemSourceController.filteredObjectList}"
-                 rows="#{itemSourceController.displayNumberOfItemsPerPage}"
+                 rows="#{itemSourceSettingObject.displayNumberOfItemsPerPage}"
                  paginator="true" 
                  reflow="true"
                  paginatorAlwaysVisible="false"

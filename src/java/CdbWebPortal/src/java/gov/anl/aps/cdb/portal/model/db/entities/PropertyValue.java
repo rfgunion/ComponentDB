@@ -1,12 +1,14 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gov.anl.aps.cdb.common.utilities.ObjectUtility;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,7 +29,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -51,7 +52,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "PropertyValue.findByIsDynamic", query = "SELECT p FROM PropertyValue p WHERE p.isDynamic = :isDynamic"),
     @NamedQuery(name = "PropertyValue.findByDisplayValue", query = "SELECT p FROM PropertyValue p WHERE p.displayValue = :displayValue"),
     @NamedQuery(name = "PropertyValue.findByTargetValue", query = "SELECT p FROM PropertyValue p WHERE p.targetValue = :targetValue")})
-public class PropertyValue extends CdbEntity implements Serializable {
+public class PropertyValue extends PropertyValueBase implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -60,29 +61,26 @@ public class PropertyValue extends CdbEntity implements Serializable {
     private Integer id;
     @Size(max = 64)
     private String tag;
-    @Size(max = 256)
+    @Size(max = 512)
     private String value;
     @Size(max = 16)
     private String units;
     @Size(max = 256)
     private String description;
     @Basic(optional = false)
-    @NotNull
     @Column(name = "entered_on_date_time")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.TIMESTAMP)    
     private Date enteredOnDateTime;
-    @Basic(optional = false)
-    @NotNull
+    @Basic(optional = false)    
     @Column(name = "is_user_writeable")
     private boolean isUserWriteable;
-    @Basic(optional = false)
-    @NotNull
+    @Basic(optional = false)    
     @Column(name = "is_dynamic")
     private boolean isDynamic;
-    @Size(max = 256)
+    @Size(max = 512)
     @Column(name = "display_value")
     private String displayValue;
-    @Size(max = 256)
+    @Size(max = 512)
     @Column(name = "target_value")
     private String targetValue;
     @ManyToMany(mappedBy = "propertyValueList")
@@ -102,15 +100,24 @@ public class PropertyValue extends CdbEntity implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "propertyValue")
     private List<PropertyValueHistory> propertyValueHistoryList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "propertyValue")
+    @JsonIgnore
     private List<PropertyMetadata> propertyMetadataList;
 
     public static final transient SimpleDateFormat InputDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
-
+    
+    @JsonIgnore
     private transient Boolean booleanValue;
+    @JsonIgnore
     private transient Date dateValue;
 
+    @JsonIgnore
     private transient String infoActionCommand;
+    @JsonIgnore
     private transient boolean handlerInfoSet;
+
+    private transient List<PropertyValueMetadata> propertyValueMetadataList;    
+    @JsonIgnore
+    private transient Boolean isHasPropertyMetadata = null;
 
     public PropertyValue() {
     }
@@ -147,6 +154,7 @@ public class PropertyValue extends CdbEntity implements Serializable {
     }
 
     public void setValue(String value) {
+        this.booleanValue = null;
         this.value = value;
     }
 
@@ -182,6 +190,7 @@ public class PropertyValue extends CdbEntity implements Serializable {
         this.enteredByUser = enteredByUser;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getEnteredOnDateTime() {
         return enteredOnDateTime;
     }
@@ -198,12 +207,20 @@ public class PropertyValue extends CdbEntity implements Serializable {
         this.isUserWriteable = isUserWriteable;
     }
 
+    public String getIsUserWriteableString() {
+        return String.valueOf(isUserWriteable);
+    }
+
     public boolean getIsDynamic() {
         return isDynamic;
     }
 
     public void setIsDynamic(boolean isDynamic) {
         this.isDynamic = isDynamic;
+    }
+
+    public String getIsDynamicString() {
+        return String.valueOf(isDynamic);
     }
 
     public String getDisplayValue() {
@@ -240,6 +257,13 @@ public class PropertyValue extends CdbEntity implements Serializable {
         this.connectorList = connectorList;
     }
 
+    public void addItemElementToItemElementList(ItemElement itemElement) {
+        if (itemElementList == null) {
+            itemElementList = new ArrayList<>();
+        }
+        itemElementList.add(itemElement);
+    }
+
     @XmlTransient
     public List<ItemElement> getItemElementList() {
         return itemElementList;
@@ -271,6 +295,11 @@ public class PropertyValue extends CdbEntity implements Serializable {
     public List<PropertyMetadata> getPropertyMetadataList() {
         return propertyMetadataList;
     }
+    
+    @Override
+    public List<PropertyMetadataBase> getPropertyMetadataBaseList() {
+        return (List<PropertyMetadataBase>) (List<?>) getPropertyMetadataList();
+    }
 
     public void setPropertyMetadataList(List<PropertyMetadata> propertyMetadataList) {
         this.propertyMetadataList = propertyMetadataList;
@@ -293,30 +322,73 @@ public class PropertyValue extends CdbEntity implements Serializable {
         return false;
     }
 
-    public boolean equalsByTagAndValueAndUnitsAndDescription(PropertyValue other) {
+    public boolean equalsByTagAndValueAndUnitsAndDescriptionAndMetadata(PropertyValue other) {
         if (other != null) {
-            return (ObjectUtility.equals(this.tag, other.tag)
+            boolean equal = (ObjectUtility.equals(this.tag, other.tag)
                     && ObjectUtility.equals(this.value, other.value)
                     && ObjectUtility.equals(this.units, other.units)
                     && ObjectUtility.equals(this.description, other.description));
+            
+            if (equal) {
+                if (this.getIsHasPropertyMetadata()) {
+                    if (other.getIsHasPropertyMetadata()) {
+                        for (PropertyMetadata pm : this.getPropertyMetadataList()) {
+                            String metadataKey = pm.getMetadataKey();
+                            PropertyMetadata otherPm = other.getPropertyMetadataForKey(metadataKey); 
+                            if (!pm.getMetadataValue().equals(otherPm.getMetadataValue())) {
+                                equal = false; 
+                                break; 
+                            }
+                        }
+                    } else {
+                        equal = false; 
+                    }                 
+                } else if (other.getIsHasPropertyMetadata()) {
+                    equal = false; 
+                }
+            }
+            
+            return equal;
         }
         return false;
     }
-
+    
     public Boolean getBooleanValue() {
+        if (booleanValue == null) {
+            if (value == null || value.isEmpty()) {
+                booleanValue = false;
+            } else {
+                booleanValue = Boolean.parseBoolean(this.value);
+            }
+        }
+
         return booleanValue;
     }
 
     public void setBooleanValue(Boolean booleanValue) {
         this.booleanValue = booleanValue;
+        if (booleanValue != null) {
+            this.value = booleanValue.toString();
+        }
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getDateValue() {
+        if (dateValue == null && value != null && !value.isEmpty()) {
+            try {
+                dateValue = InputDateFormat.parse(value);
+            } catch (ParseException ex) {
+                // should not happen
+            }
+        }
         return dateValue;
     }
 
     public void setDateValue(Date dateValue) {
         this.dateValue = dateValue;
+        if (dateValue != null) {
+            this.value = dateValue.toString();
+        }
     }
 
     public String getInfoActionCommand() {
@@ -341,6 +413,62 @@ public class PropertyValue extends CdbEntity implements Serializable {
 
     public void setTargetValueToValue() {
         this.targetValue = value;
+    }
+
+    public List<PropertyValueMetadata> getPropertyValueMetadataList() {
+        if (propertyValueMetadataList == null) {
+            if (propertyType != null) {
+
+                List<PropertyTypeMetadata> propertyTypeMetadataList = propertyType.getPropertyTypeMetadataList();
+                propertyValueMetadataList = new ArrayList<>();
+
+                for (PropertyTypeMetadata ptm : propertyTypeMetadataList) {
+                    PropertyValueMetadata valueMetadata;
+                    valueMetadata = new PropertyValueMetadata(this, ptm);
+                    propertyValueMetadataList.add(valueMetadata);
+                }
+
+                // Show depreciated metadata values 
+                if (propertyMetadataList != null) {
+                    if (propertyMetadataList.size() > propertyValueMetadataList.size()) {
+                        for (PropertyMetadata propertyMetadata : propertyMetadataList) {
+                            String metadataKey = propertyMetadata.getMetadataKey();
+                            boolean skip = false;
+                            for (PropertyValueMetadata pvm : propertyValueMetadataList) {
+                                if (pvm.getPropertyMetadata().getMetadataKey().equals(metadataKey)) {
+                                    skip = true;
+                                    break;
+                                }
+                            }
+                            if (skip) {
+                                continue;
+                            }
+
+                            propertyValueMetadataList.add(new PropertyValueMetadata(this, propertyMetadata));
+                        }
+                    }
+                }
+
+            }
+        }
+        return propertyValueMetadataList;
+    }
+
+    public Boolean getIsHasPropertyMetadata() {
+        if (isHasPropertyMetadata == null) {
+            if (propertyType != null) {
+                if (propertyType.getPropertyTypeMetadataList().size() > 0) {
+                    isHasPropertyMetadata = true;
+                } else if (propertyMetadataList != null) {
+                    isHasPropertyMetadata = propertyMetadataList.size() > 0;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        return isHasPropertyMetadata;
     }
 
     public void setPropertyMetadataValue(String key, String value) {
@@ -369,12 +497,19 @@ public class PropertyValue extends CdbEntity implements Serializable {
         }
         return null;
     }
-    
+
     public void removePropertyMetadataKey(String key) {
         PropertyMetadata propertyMetadata = getPropertyMetadataForKey(key);
         if (propertyMetadata != null) {
-            propertyMetadataList.remove(propertyMetadata); 
+            propertyMetadataList.remove(propertyMetadata);
+            isHasPropertyMetadata = null;
         }
+    }
+
+    public void removePropertyMetadataKey(PropertyValueMetadata propertyValueMetadata) {
+        String key = propertyValueMetadata.propertyMetadata.getMetadataKey();
+        propertyValueMetadataList.remove(propertyValueMetadata);
+        removePropertyMetadataKey(key);
     }
 
     public PropertyMetadata getPropertyMetadataForKey(String key) {
@@ -399,6 +534,18 @@ public class PropertyValue extends CdbEntity implements Serializable {
         cloned.itemConnectorList = null;
         cloned.connectorList = null;
         cloned.propertyValueHistoryList = null;
+        
+        if (cloned.propertyMetadataList != null) {
+            List<PropertyMetadata> pmd = cloned.propertyMetadataList;
+            cloned.propertyMetadataList = new ArrayList<>();
+            for (PropertyMetadata propertyMetadata : pmd) {
+                PropertyMetadata pmetadata = new PropertyMetadata();
+                pmetadata.setPropertyValue(cloned);
+                pmetadata.setMetadataKey(propertyMetadata.getMetadataKey());
+                pmetadata.setMetadataValue(propertyMetadata.getMetadataValue());
+                cloned.propertyMetadataList.add(pmetadata); 
+            }
+        }
         cloned.tag = tag;
         cloned.description = description;
         return cloned;
@@ -439,6 +586,53 @@ public class PropertyValue extends CdbEntity implements Serializable {
     @Override
     public String toString() {
         return "gov.anl.aps.cdb.portal.model.db.entities.PropertyValue[ id=" + id + " ]";
+    }
+
+    public class PropertyValueMetadata {
+
+        PropertyTypeMetadata propertyTypeMetadata;
+        PropertyMetadata propertyMetadata;
+        @JsonIgnore
+        PropertyValue propertyValue;
+
+        public PropertyValueMetadata(PropertyValue propertyValue, PropertyTypeMetadata propertyTypeMetadata) {
+            this.propertyTypeMetadata = propertyTypeMetadata;
+            this.propertyValue = propertyValue;
+
+            this.propertyMetadata = propertyValue.getPropertyMetadataForKey(propertyTypeMetadata.getMetadataKey());
+
+            if (this.propertyMetadata == null) {
+                String defaultValue = "";
+                if (this.propertyTypeMetadata.getIsHaveAllowedValues()) {
+                    defaultValue = this.propertyTypeMetadata.getAllowedPropertyMetadataValueList().get(0).getMetadataValue();
+                }
+                propertyValue.setPropertyMetadataValue(this.propertyTypeMetadata.getMetadataKey(), defaultValue);
+                this.propertyMetadata = propertyValue.getPropertyMetadataForKey(propertyTypeMetadata.getMetadataKey());
+            }
+
+        }
+
+        public PropertyValueMetadata(PropertyValue propertyValue, PropertyMetadata propertyMetadata) {
+            this.propertyMetadata = propertyMetadata;
+            this.propertyValue = propertyValue;
+        }
+
+        public PropertyTypeMetadata getPropertyTypeMetadata() {
+            return propertyTypeMetadata;
+        }
+
+        public PropertyMetadata getPropertyMetadata() {
+            return propertyMetadata;
+        }
+
+        public PropertyValue getPropertyValue() {
+            return propertyValue;
+        }
+
+        public boolean getIsTrashFunctionalityAvaiable() {
+            return propertyTypeMetadata == null;
+        }
+
     }
 
 }

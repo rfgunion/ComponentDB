@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/controllers/LoginController.java $
- *   $Date: 2015-04-17 12:25:03 -0500 (Fri, 17 Apr 2015) $
- *   $Revision: 594 $
- *   $Author: sveseli $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.controllers;
 
@@ -18,13 +13,13 @@ import gov.anl.aps.cdb.portal.utilities.ConfigurationUtility;
 import gov.anl.aps.cdb.common.utilities.LdapUtility;
 import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import gov.anl.aps.cdb.common.utilities.CryptUtility;
+import gov.anl.aps.cdb.portal.model.db.utilities.LogUtility;
 import java.io.Serializable;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
 import javax.inject.Named;
+import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -36,6 +31,9 @@ public class LoginController implements Serializable {
 
     private static final int MilisecondsInSecond = 1000;
     private static final int SessionTimeoutDecreaseInSeconds = 10;
+    
+    private final String LOGIN_INFO_LOG_LEVEL = "loginInfo"; 
+    private final String LOGIN_WARNING_LOG_LEVEL = "loginWarning"; 
 
     @EJB
     private UserInfoFacade userFacade;
@@ -44,11 +42,13 @@ public class LoginController implements Serializable {
     private String password = null;
     private boolean loggedInAsAdmin = false;
     private boolean loggedInAsUser = false;
+    private boolean checkedSession = false; 
+    private boolean registeredSession = false; 
     private UserInfo user = null;
     private Integer sessionTimeoutInMiliseconds = null;
-    
-    private SettingController settingController = null; 
-    private final String SETTING_CONTROLLER_NAME = "settingController"; 
+
+    private SettingController settingController = null;
+    private final String SETTING_CONTROLLER_NAME = "settingController";
 
     private static final String AdminGroupListPropertyName = "cdb.portal.adminGroupList";
     private static final List<String> adminGroupNameList = ConfigurationUtility.getPortalPropertyList(AdminGroupListPropertyName);
@@ -56,7 +56,7 @@ public class LoginController implements Serializable {
 
     public LoginController() {
     }
-    
+
     public static LoginController getInstance() {
         return (LoginController) SessionUtility.findBean("loginController");
     }
@@ -78,6 +78,16 @@ public class LoginController implements Serializable {
     }
 
     public boolean isLoggedIn() {
+        if (!checkedSession) {
+            checkedSession = true; 
+            String lastUsername = SessionUtility.getLastUsername();
+            if (lastUsername != null) {
+                username = lastUsername; 
+                user = userFacade.findByUsername(username);
+                loadAuthenticatedUser();
+            }
+            
+        }
         return (loggedInAsAdmin || loggedInAsUser);
     }
 
@@ -98,6 +108,10 @@ public class LoginController implements Serializable {
     }
 
     private boolean isAdmin(String username) {
+        return isAdmin(username, userFacade);
+    }
+    
+    public static boolean isAdmin(String username, UserInfoFacade userFacade)  {
         for (String adminGroupName : adminGroupNameList) {
             if (userFacade.isUserMemberOfUserGroup(username, adminGroupName)) {
                 return true;
@@ -121,13 +135,28 @@ public class LoginController implements Serializable {
         }
 
         user = userFacade.findByUsername(username);
-        if (user == null) {
+        if (user == null) {            
             SessionUtility.addErrorMessage("Unknown User", "Username " + username + " is not registered.");
+            LogUtility.addSystemLog(LOGIN_WARNING_LOG_LEVEL, "Non-registered user login attempt: " + username);
             return (username = password = null);
         }
 
         boolean isAdminUser = isAdmin(username);
         logger.debug("User " + username + " is admin: " + isAdminUser);
+                        
+        if (validateCredentials(user, password)) {
+            loadAuthenticatedUser();
+            return getLandingPage();
+        } else {
+            SessionUtility.addErrorMessage("Invalid Credentials", "Username/password combination could not be verified.");                        
+            LogUtility.addSystemLog(LOGIN_WARNING_LOG_LEVEL, "Authentication Failed: " + username);            
+            return (username = password = null);
+        }
+
+    }
+    
+    public static boolean validateCredentials(UserInfo user, String password) {
+        String username = user.getUsername(); 
         boolean validCredentials = false;
         if (user.getPassword() != null && CryptUtility.verifyPasswordWithPbkdf2(password, user.getPassword())) {
             logger.debug("User " + username + " is authorized by CDB");
@@ -138,14 +167,17 @@ public class LoginController implements Serializable {
         } else {
             logger.debug("User " + username + " is not authorized");
         }
-
-        if (validCredentials) {
-            if (settingController == null) {
-                settingController = (SettingController) SessionUtility.findBean(SETTING_CONTROLLER_NAME); 
+        return validCredentials; 
+    }
+    
+    private void loadAuthenticatedUser() {
+         if (settingController == null) {
+                settingController = (SettingController) SessionUtility.findBean(SETTING_CONTROLLER_NAME);
             }
             settingController.loadSessionUser(user);
-            
+
             SessionUtility.setUser(user);
+            boolean isAdminUser = isAdmin(username);
             if (isAdminUser) {
                 loggedInAsAdmin = true;
                 SessionUtility.setRole(CdbRole.ADMIN);
@@ -155,14 +187,8 @@ public class LoginController implements Serializable {
                 loggedInAsUser = true;
                 SessionUtility.setRole(CdbRole.USER);
                 SessionUtility.addInfoMessage("Successful Login", "User " + username + " is logged in.");
-            }
-
-            return getLandingPage();
-        } else {
-            SessionUtility.addErrorMessage("Invalid Credentials", "Username/password combination could not be verified.");
-            return (username = password = null);
-        }
-
+            }            
+            LogUtility.addSystemLog(LOGIN_INFO_LOG_LEVEL, "Authentication Succeeded: " + username);
     }
 
     public String getLandingPage() {
@@ -173,7 +199,13 @@ public class LoginController implements Serializable {
                 landingPage = "/index";
             }
         }
-        landingPage += "?faces-redirect=true";
+        if (landingPage.contains("?")) {
+            landingPage += "&";
+        } else {
+            landingPage += "?";
+        }
+        landingPage += "faces-redirect=true";
+
         logger.debug("Landing page: " + landingPage);
         return landingPage;
     }
@@ -247,9 +279,23 @@ public class LoginController implements Serializable {
     public String logout() {
         logger.debug("Logging out user: " + user);
         SessionUtility.clearSession();
-        ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();
-        context.invalidateSession();
+        SessionUtility.invalidateSession(); 
         resetLoginInfo();
+        return "/index?faces-redirect=true";
+    }
+    
+    public String resetSession() {
+        String currentUsername = null; 
+        if (isLoggedIn()) {
+             currentUsername = user.getUsername(); 
+        }
+        
+        SessionUtility.clearSession();        
+        
+        if (currentUsername != null) {
+            SessionUtility.setLastUsername(currentUsername);
+        }
+        
         return "/index?faces-redirect=true";
     }
 
@@ -260,11 +306,9 @@ public class LoginController implements Serializable {
         } else {
             msg += "for anonymous user";
         }
+        SessionUtility.invalidateSession(); 
         SessionUtility.addWarningMessage("Warning", msg);
-        logger.debug(msg);
-        if (isLoggedIn()) {
-            resetLoginInfo();
-        }
+        logger.debug(msg);        
     }
 
     public int getSessionTimeoutInMiliseconds() {
@@ -276,5 +320,19 @@ public class LoginController implements Serializable {
         }
         // logger.debug("Idle timeout in miliseconds: " + sessionTimeoutInMiliseconds);
         return sessionTimeoutInMiliseconds;
-    }   
+    }
+    
+    public void registerSession() {
+        if (!registeredSession) {
+            registeredSession = true; 
+            SessionController instance = SessionController.getInstance();
+            HttpSession currentSession = SessionUtility.getCurrentSession();
+            instance.registerSession(currentSession);
+        }
+        
+    }
+    
+    public boolean isRegisteredSession() {
+        return registeredSession;
+    }
 }

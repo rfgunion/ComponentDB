@@ -1,10 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.view.jsf.utilities;
 
+import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.faces.model.DataModel;
@@ -81,11 +81,48 @@ public class FacesUtility {
         return false; 
     }
     
+    public boolean islistSizeOverMin(List<Object> someList, Integer min) {
+       if(someList != null) {
+           return someList.size() > min;
+       }
+       return false; 
+    }
+    
     public void setResetDataTable(DataTable dataTable) {
         dataTable.reset();
     }
     
     public DataTable getResetDataTable() {
         return null;
-    }      
+    }
+    
+    public Object returnValueIfTrue(Boolean input, Object returnVal) {
+        if (input) {
+            return returnVal;
+        }
+        return null; 
+    }
+    
+    public void displayGrowlInfoMessage(String summary, String message) {
+        SessionUtility.addInfoMessage(summary, message);
+    }
+    
+    /**
+     * In Primefaces 7.0 the filterBy attribute of a column cannot have a ui:param specified directly. 
+     * ui:param value is passed into this function and returned to the filterBy attribute.
+     * Resolves issue with filterBy not working for columns with ui:param filterBy value. 
+     * 
+     * TODO: Remove functionality when not necessary. 
+     * 
+     * @param string
+     * @return 
+     */
+    public String getFilterString(String string) {
+        if (string != null) {
+            return string; 
+        }
+        else {
+            return ""; 
+        }
+    }
 }

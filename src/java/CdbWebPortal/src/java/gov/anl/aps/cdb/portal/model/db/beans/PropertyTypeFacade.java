@@ -1,14 +1,13 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.beans;
 
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyType;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeCategory;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeHandler;
-import java.util.ArrayList;
+import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -36,7 +35,7 @@ public class PropertyTypeFacade extends CdbEntityFacade<PropertyType> {
         super(PropertyType.class);
     }
     
-        public PropertyType findByName(String name) {
+    public PropertyType findByName(String name) {
         try {
             return (PropertyType) em.createNamedQuery("PropertyType.findByName")
                     .setParameter("name", name)
@@ -66,6 +65,26 @@ public class PropertyTypeFacade extends CdbEntityFacade<PropertyType> {
         return null; 
     }
     
+    public List<PropertyType> findByPropertyTypeCategory(PropertyTypeCategory category){
+        try{
+            return (List<PropertyType>) em.createNamedQuery("PropertyType.findByPropertyTypeCategory")
+                    .setParameter("propertyTypeCategory", category)
+                    .getResultList(); 
+        }catch (NoResultException ex) {
+        }
+        return null; 
+    }
+    
+    public List<PropertyType> findByPropertyInternalStatus(Boolean isInternal){
+        try{
+            return (List<PropertyType>) em.createNamedQuery("PropertyType.findByInternalStatus")
+                    .setParameter("isInternal", isInternal)
+                    .getResultList(); 
+        }catch (NoResultException ex) {
+        }
+        return null; 
+    }
+    
     @Override
     public List<PropertyType> findAll() {
         return (List<PropertyType>) em.createNamedQuery("PropertyType.findAll")
@@ -77,15 +96,22 @@ public class PropertyTypeFacade extends CdbEntityFacade<PropertyType> {
      * 
      * @param propertyTypeCategoryList [Optional] will perform query using given attribute.
      * @param propertyTypeHandlerList [Optional] will perform query using given attribute.
+     * @param isInternal Should the property types displayed be internal.  
      * 
      * @return 
      */
     public List<PropertyType> findByFilterViewAttributes(
             List<PropertyTypeCategory> propertyTypeCategoryList,
-            List<PropertyTypeHandler> propertyTypeHandlerList) {
+            List<PropertyTypeHandler> propertyTypeHandlerList, 
+            String domainName,
+            Boolean isInternal) {
         String queryString = QUERY_STRING_START; 
         String propertyTypeCategoryQueryString = null;
         String propertyTypeHandlerQueryString = null;
+        
+        if (domainName != null) {
+            queryString += "JOIN p.allowedDomainList AS ad ";            
+        }
         
         if (propertyTypeCategoryList != null) {
             if (!propertyTypeCategoryList.isEmpty()) {
@@ -120,7 +146,9 @@ public class PropertyTypeFacade extends CdbEntityFacade<PropertyType> {
             }
         }
         
-        if (propertyTypeCategoryQueryString != null || propertyTypeHandlerQueryString != null) {
+        if (propertyTypeCategoryQueryString != null 
+                || propertyTypeHandlerQueryString != null 
+                || domainName != null) {
             queryString += "WHERE "; 
             if (propertyTypeCategoryQueryString != null) {
                 queryString += propertyTypeCategoryQueryString + " ";  
@@ -131,6 +159,14 @@ public class PropertyTypeFacade extends CdbEntityFacade<PropertyType> {
                 }
                 queryString += propertyTypeHandlerQueryString;
             }
+            if (propertyTypeCategoryQueryString != null || propertyTypeHandlerQueryString != null) {
+                queryString += " AND ";
+            }
+            queryString += "p.isInternal = " + isInternal.toString();
+            
+            if (domainName != null) {
+                queryString += " AND ad.name = '" + domainName + "'"; 
+            }
             
             queryString += " ORDER BY p.name ASC"; 
             
@@ -140,6 +176,10 @@ public class PropertyTypeFacade extends CdbEntityFacade<PropertyType> {
         
         
         return null;         
+    }
+    
+    public static PropertyTypeFacade getInstance() {
+        return (PropertyTypeFacade) SessionUtility.findFacade(PropertyTypeFacade.class.getSimpleName()); 
     }
     
 }

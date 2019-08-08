@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Copyright (c) UChicago Argonne, LLC. All rights reserved.
+# See LICENSE file.
+
+
 sbindir=`dirname $0` 
 # Set root/run directories
 if [ -z $CDB_ROOT_DIR ]; then
@@ -11,7 +15,11 @@ if [ -z $CDB_INSTALL_DIR ]; then
     export CDB_INSTALL_DIR=`pwd`
 fi
 CA_ROOT=$CDB_INSTALL_DIR/etc/CA
-CA_CONFIG=$CDB_ROOT_DIR/etc/cdb.openssl.cnf
+CA_CONFIG=$CDB_INSTALL_DIR/etc/cdb.openssl.cnf
+
+if [ ! -f $CA_CONFIG ]; then
+    $CDB_ROOT_DIR/sbin/cdb_create_configuration_openssl.sh
+fi
 
 LOG_FILE=/tmp/cdb-server-cert.log.$$
 

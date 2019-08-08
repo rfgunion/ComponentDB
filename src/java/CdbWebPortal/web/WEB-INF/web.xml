@@ -1,9 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
     <context-param>
         <param-name>javax.faces.PROJECT_STAGE</param-name>
         <param-value>Development</param-value>
     </context-param>
+    <context-param>
+        <param-name>primefaces.FONT_AWESOME</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <mime-mapping>
+        <extension>eot</extension>
+        <mime-type>application/vnd.ms-fontobject</mime-type>
+    </mime-mapping>
+    <mime-mapping>  
+        <extension>otf</extension>  
+        <mime-type>font/opentype</mime-type>  
+    </mime-mapping>      
+    <mime-mapping>  
+        <extension>ttf</extension>  
+        <mime-type>application/x-font-ttf</mime-type>  
+    </mime-mapping>      
+    <mime-mapping>  
+        <extension>woff</extension>  
+        <mime-type>application/x-font-woff</mime-type>  
+    </mime-mapping>
+    <mime-mapping>  
+        <extension>woff2</extension>  
+        <mime-type>application/x-font-woff2</mime-type>  
+    </mime-mapping>
+    <mime-mapping>  
+        <extension>svg</extension>  
+        <mime-type>image/svg+xml</mime-type>  
+    </mime-mapping>    
     <servlet>
         <servlet-name>Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
@@ -13,6 +45,14 @@
         <servlet-name>Faces Servlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
+    <filter>
+        <filter-name>DmNoCacheFilter</filter-name>
+        <filter-class>gov.anl.aps.cdb.portal.utilities.DmNoCacheFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>DmNoCacheFilter</filter-name>
+        <servlet-name>Faces Servlet</servlet-name>
+    </filter-mapping>       
     <session-config>
         <session-timeout>
             60
@@ -25,4 +65,73 @@
         <param-name>org.omnifaces.FACES_VIEWS_SCAN_PATHS</param-name>
         <param-value>/*.xhtml</param-value>
     </context-param>
+    
+    <error-page>
+        <exception-type>javax.faces.application.ViewExpiredException</exception-type>
+        <location>/index.xhtml</location>
+    </error-page>
+    
+    <error-page>
+        <exception-type>com.sun.faces.context.FacesFileNotFoundException</exception-type>
+        <location>/views/error/pageNotFound.xhtml</location>
+    </error-page>
+
+    <error-page>
+        <error-code>401</error-code>
+        <location>/views/error/accessDenied.xhtml</location>
+    </error-page>
+
+    <error-page>
+        <error-code>403</error-code>
+        <location>/views/error/accessDenied.xhtml</location>
+    </error-page>
+
+    <error-page>
+        <error-code>404</error-code>
+        <location>/views/error/pageNotFound.xhtml</location>
+    </error-page>
+    
+    <security-constraint>
+        <display-name>Restrict Private Files</display-name>
+        <web-resource-collection>
+            <web-resource-name>Restricted Files</web-resource-name>
+            <url-pattern>/templates/*</url-pattern>
+            <url-pattern>/views/adminLog/private/*</url-pattern>           
+            <url-pattern>/views/allowedPropertyValue/private/*</url-pattern>
+            <url-pattern>/views/common/private/*</url-pattern>
+            <url-pattern>/views/domainEntity/private/*</url-pattern>
+            <url-pattern>/views/domainEntityLog/private/*</url-pattern>
+            <url-pattern>/views/domainEntityProperty/private/*</url-pattern>
+            <url-pattern>/views/domainEntityRowExpansion/private/*</url-pattern>
+            <url-pattern>/views/entityInfo/private/*</url-pattern>
+            <url-pattern>/views/error/private/*</url-pattern>
+            <url-pattern>/views/item/private/*</url-pattern>
+            <url-pattern>/views/itemCategory/private/*</url-pattern>
+            <url-pattern>/views/itemDomainCatalog/private/*</url-pattern>
+            <url-pattern>/views/itemDomainInventory/private/*</url-pattern>
+            <url-pattern>/views/itemDomainLocation/private/*</url-pattern>
+            <url-pattern>/views/itemElement/private/*</url-pattern>
+            <url-pattern>/views/itemMember/private/*</url-pattern>
+            <url-pattern>/views/itemProject/private/*</url-pattern>
+            <url-pattern>/views/itemSource/private/*</url-pattern>
+            <url-pattern>/views/itemSparePartsTrackingProperty/private/*</url-pattern>
+            <url-pattern>/views/itemType/private/*</url-pattern>
+            <url-pattern>/views/itemTypeCategory/private/*</url-pattern>
+            <url-pattern>/views/log/private/*</url-pattern>
+            <url-pattern>/views/plugins/private/*</url-pattern>
+            <url-pattern>/views/propertyType/private/*</url-pattern>
+            <url-pattern>/views/propertyTypeCategory/private/*</url-pattern>
+            <url-pattern>/views/propertyValue/private/*</url-pattern>
+            <url-pattern>/views/propertyValueHistory/private/*</url-pattern>
+            <url-pattern>/views/search/private/*</url-pattern>
+            <url-pattern>/views/settings/private/*</url-pattern>
+            <url-pattern>/views/simpleEntity/private/*</url-pattern>
+            <url-pattern>/views/source/private/*</url-pattern>
+            <url-pattern>/views/userGroup/private/*</url-pattern>
+            <url-pattern>/views/userInfo/private/*</url-pattern>
+            <url-pattern>/views/userRole/private/*</url-pattern>
+            <url-pattern>/views/userSetting/private/*</url-pattern>            
+        </web-resource-collection>
+        <auth-constraint/>
+    </security-constraint>
 </web-app>

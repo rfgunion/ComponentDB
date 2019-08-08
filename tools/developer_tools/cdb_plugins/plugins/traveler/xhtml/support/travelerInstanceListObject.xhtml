@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://xmlns.jcp.org/jsf/html">
+
+    <ui:param name="renderedCreatedFromTemplate"
+              value="#{renderedCreatedFromTemplate != null ? renderedCreatedFromTemplate : true}" /> 
+    
+    <ui:param name="renderedDescription"
+              value="#{renderedDescription != null ? renderedDescription : true}" /> 
+    
+    <ui:param name="renderedEstimatedProgress"
+              value="#{renderedEstimatedProgress != null ? renderedEstimatedProgress : true}" /> 
+    
+    <ui:param name="renderedArchivedOn"
+              value="#{renderedArchivedOn != null ? renderedArchivedOn : false}" /> 
+              
+
+    <p:column headerText="Title">
+        <h:outputLink value="#{itemTravelerDomainInventoryController.getBinderTravelerUrl(travelerObject)}"
+                      target="_blank">
+            <h:outputText value="#{travelerObject.title}" />
+        </h:outputLink>
+    </p:column>
+
+    <p:column headerText="Description"
+              rendered="#{renderedDescription}">
+        <h:outputText value="#{travelerObject.description}" />
+    </p:column>
+
+    <p:column headerText="Created By">
+        <h:outputText value="#{travelerObject.createdBy}" />
+    </p:column>
+
+    <p:column headerText="Updated By">
+        <h:outputText value="#{travelerObject.updatedBy}" />
+    </p:column>
+
+    <p:column headerText="Created From Template"
+              rendered="#{renderedCreatedFromTemplate}">
+        <h:outputText value="#{itemTravelerDomainInventoryController.getFormName(travelerObject)}" />
+    </p:column>
+
+    <p:column headerText="Estimated Progress"
+              rendered="#{renderedEstimatedProgress}">
+        <ui:include src="travelerInstanceObjectProgress.xhtml" />
+    </p:column>
+    
+    <p:column headerText="Archived On"
+              rendered="#{renderedArchivedOn}">
+        <h:outputText value="#{travelerObject.archivedOn}" />
+    </p:column>                  
+
+</ui:composition>
+

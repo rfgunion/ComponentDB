@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+    
+    <ui:param name="itemObject" value="#{itemObject != null ? itemObject : itemDomainInventoryController.current}" />
+    <ui:param name="updateTarget" value="#{updateTarget != null ? updateTarget : '@form'}" />
+
+    <p:dialog id="#{entityTypeName}LocationItemSelectionDialog#{viewName}"
+              widgetVar="#{entityTypeName}LocationItemSelectionDialog#{viewName}Widget"
+              resizable="false"              
+              styleClass="viewTransparentBackgroundDialog"
+              header="Select Location for inventory item."
+              modal="true">
+        
+        <p:outputPanel rendered="#{itemDomainLocationController.renderLocationSelectionDialog}">
+            <ui:include src="locatableItemLocationSelectTreeSelection.xhtml" /> 
+        </p:outputPanel>
+
+        <f:facet name="footer">
+            <p:commandButton value="Done" 
+                             id="#{entityTypeName}LocationItemSelectionDialog#{viewName}DoneButton"
+                             update="#{entityTypeName}LocationSelectionTree"
+                             action="#{locatableItemController.updateLocationForItem(itemObject, 
+                                       itemDomainLocationController.itemFromSelectedLocationTreeNode, 
+                                       'locationItemSelectionDialogSelectionSuccess()')}"/>          
+            <p:remoteCommand name="locationItemSelectionDialogSelectionSuccess"
+                             onstart="PF('#{entityTypeName}LocationItemSelectionDialog#{viewName}Widget').hide()"
+                             update="#{updateTarget}"/>
+        </f:facet>
+
+    </p:dialog>
+    
+    <p:remoteCommand name="showLocationItemSelectionDialog"
+                     onstart="PF('loadingDialog').show();"
+                     update="#{entityTypeName}LocationItemSelectionDialog#{viewName}"
+                     oncomplete="PF('loadingDialog').hide();
+                     PF('#{entityTypeName}LocationItemSelectionDialog#{viewName}Widget').show()">
+        <f:setPropertyActionListener value="#{true}"
+                                     target="#{itemDomainLocationController.renderLocationSelectionDialog}" /> 
+    </p:remoteCommand>                                 
+                                
+                     
+
+</ui:composition>
+
+

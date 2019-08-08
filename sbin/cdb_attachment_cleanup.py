@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
 #
 # CDB attachment status and cleanup script
 #
@@ -41,7 +45,7 @@ else:
         print >> sys.stderr, "Configuration file does not exist: %s." %(cdbWebServiceConfigFile)
         exit(1)
 
-    deploymentConfiguration = open("%s/etc/%s.deploy.conf" % (cdbRootDir, databaseName)).read().split('\n')
+    deploymentConfiguration = open("%s/etc/%s.deploy.conf" % (cdbInstallDir, databaseName)).read().split('\n')
     deploymentConfigurationDictionary = {}
     for config in deploymentConfiguration:
         configSplit = config.split('=')

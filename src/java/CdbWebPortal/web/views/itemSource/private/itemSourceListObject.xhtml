@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -7,10 +11,11 @@
                 xmlns:f="http://xmlns.jcp.org/jsf/core">
     
     <ui:param name="filterable" value="#{filterable != null ? filterable : false}" />
+    <ui:param name="itemSourceSettingObject" value="#{itemSourceController.settingObject}" />
 
     <p:column sortBy="#{itemSourceObject.id}" headerText="Id"
               filterBy="#{itemSourceObject.id}"
-              rendered="#{itemSourceController.displayId}"
+              rendered="#{itemSourceSettingObject.displayId}"
               filterable="#{filterable}">
         <h:outputText value="#{itemSourceObject.id}"/>
     </p:column>
@@ -18,7 +23,8 @@
     <p:column sortBy="#{itemSourceObject.source.name}" 
               filterBy="#{itemSourceObject.source.name}" 
               filterable="#{filterable}"
-              headerText="Name">
+              headerText="Name"
+              exportFunction="#{itemSourceObject.source.getName()}">
         <h:outputLink value="../source/view.xhtml?id=#{itemSourceObject.source.id}&amp;breadcrumb=#{breadcrumb}" title="View design details">
             <h:outputText value="#{itemSourceObject.source.name}"/>
         </h:outputLink>  
@@ -28,14 +34,14 @@
               filterBy="#{itemSourceObject.partNumber}" 
               filterable="#{filterable}"
               headerText="Part Number"
-              rendered="#{itemSourceController.displayPartNumber}">
+              rendered="#{itemSourceSettingObject.displayPartNumber}">
         <h:outputText value="#{itemSourceObject.partNumber}"/>
     </p:column>
 
     <p:column sortBy="#{itemSourceObject.cost}" 
               filterBy="#{itemSourceObject.cost}" headerText="Cost [$]"
               filterable="#{filterable}"
-              rendered="#{itemSourceController.displayCost}">
+              rendered="#{itemSourceSettingObject.displayCost}">
         <h:outputText value="#{itemSourceObject.cost}"/>
     </p:column>
 
@@ -43,14 +49,14 @@
               filterBy="#{itemSourceObject.description}" 
               filterable="#{filterable}"
               headerText="Description"
-              rendered="#{itemSourceController.displayDescription}">
+              rendered="#{itemSourceSettingObject.displayDescription}">
         <h:outputText value="#{itemSourceObject.description}"/>
     </p:column>    
 
     <p:column sortBy="#{itemSourceObject.contactInfo}" headerText="Contact Info"
               filterBy="#{itemSourceObject.contactInfo}" 
               filterable="#{filterable}"
-              rendered="#{itemSourceController.displayContactInfo}">
+              rendered="#{itemSourceSettingObject.displayContactInfo}">
         <h:outputText value="#{itemSourceObject.contactInfo}"/>
     </p:column>    
 
@@ -58,7 +64,7 @@
               filterBy="#{itemSourceObject.url}" 
               filterable="#{filterable}"
               headerText="URL"
-              rendered="#{itemSourceController.displayUrl}">
+              rendered="#{itemSourceSettingObject.displayUrl}">
         <h:outputLink value="#{itemSourceObject.targetUrl}" target="_page_#{itemSourceObject.url}">
             <h:outputText value="#{itemSourceObject.displayUrl}"/>
         </h:outputLink>
@@ -66,7 +72,8 @@
 
     <p:column sortBy="#{itemSourceObject.isManufacturer}" 
               headerText="Manufacturer"
-              rendered="#{itemSourceController.displayIsManufacturer}">
+              rendered="#{itemSourceSettingObject.displayIsManufacturer}"
+              exportFunction="#{itemSourceObject.getIsManufacturerString()}">
         <f:attribute name="exportValue" value="#{itemSourceObject.isManufacturer}"/>
         <div class="dataTableCheckbox">
             <h:outputText value="" styleClass="ui-icon ui-icon-check" 
@@ -75,7 +82,8 @@
     </p:column>   
 
     <p:column sortBy="#{itemSourceObject.isVendor}" headerText="Vendor"
-              rendered="#{itemSourceController.displayIsVendor}">
+              rendered="#{itemSourceSettingObject.displayIsVendor}"
+              exportFunction="#{itemSourceObject.getIsVendorString()}">
         <f:attribute name="exportValue" value="#{itemSourceObject.isVendor}"/>
         <div class="dataTableCheckbox">
             <h:outputText value="" styleClass="ui-icon ui-icon-check"

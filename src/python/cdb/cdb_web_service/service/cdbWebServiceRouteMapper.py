@@ -1,19 +1,26 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 #
 # Route mapper for CDB web service.
 #
 
-import sys
-import os
-
 import cherrypy
-from cdb.common.utility.loggingManager import LoggingManager
+
+from cdb.cdb_web_service.service.propertyRouteDescriptor import PropertyRouteDescriptor
 from cdb.common.utility.configurationManager import ConfigurationManager
+from cdb.common.utility.loggingManager import LoggingManager
+from cdb.cdb_web_service.service.cdbPluginRouteMapper import CdbPluginRouteMapper
+from itemRouteDescriptor import ItemRouteDescriptor
 from loginRouteDescriptor import LoginRouteDescriptor
 from userRouteDescriptor import UserRouteDescriptor
-from pdmLinkRouteDescriptor import PDMLinkRouteDescriptor
-from itemRouteDescriptor import ItemRouteDescriptor
+from logRouteDescriptor import LogRouteDescriptor
+
 
 class CdbWebServiceRouteMapper:
 
@@ -26,8 +33,10 @@ class CdbWebServiceRouteMapper:
 
         # Get routes.
         routes = LoginRouteDescriptor.getRoutes() + UserRouteDescriptor.getRoutes()
-        routes += PDMLinkRouteDescriptor.getRoutes()
+        routes += CdbPluginRouteMapper.getPluginRoutes()
         routes += ItemRouteDescriptor.getRoutes()
+        routes += LogRouteDescriptor.getRoutes()
+        routes += PropertyRouteDescriptor.getRoutes()
 
         # Add routes to dispatcher. 
         d = cherrypy.dispatch.RoutesDispatcher()

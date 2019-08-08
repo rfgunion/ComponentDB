@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from cdb.common.constants import cdbStatus
 from cdb.common.exceptions import cdbExceptionMap
 from cdb.common.exceptions.cdbException import CdbException

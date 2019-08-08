@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -19,6 +23,14 @@
 
             <h:outputLabel for="logEntryValue" value="Log Entry" styleClass="entityDataEmphasizedLabel"/>
             <h:inputTextarea id="logEntryValue" value="#{logObject.text}"/>
+            
+            <h:outputLabel for="effectiveFromDate" value="Date" styleClass="entityDataEmphasizedLabel"/>
+            <p:calendar id="effectiveFromDate"
+                        value="#{logObject.effectiveFromDateTime}" /> 
+            
+            <h:outputLabel for="effectiveToDate" value="End Date" styleClass="entityDataEmphasizedLabel"/>
+            <p:calendar id="effectiveToDate" 
+                        value="#{logObject.effectiveToDateTime}" /> 
 
             <h:outputLabel for="logTopicValue" value="Log Topic" styleClass="entityDataEmphasizedLabel"/>
             <p:selectOneMenu id="logTopicValue" value="#{logObject.logTopic}" styleClass="entityDataText">
@@ -47,6 +59,7 @@
         <f:facet name="footer" class="dialog">
             <p:outputPanel rendered="#{logObject != null}">
                 <p:commandButton value="Save" alt="Save" 
+                                 id="#{entityTypeName}SaveLogButton"
                                  action="#{entityController.saveLogList()}"
                                  update="@form"
                                  oncomplete="PF('#{entityTypeName}LogAddDialogWidget').hide()"

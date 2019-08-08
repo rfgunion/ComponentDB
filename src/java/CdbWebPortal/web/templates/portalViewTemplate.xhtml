@@ -1,4 +1,8 @@
 <?xml version='1.0' encoding='UTF-8' ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -21,7 +25,7 @@
             <link href="#{pathContextRoot}/resources/css/portal.css" rel="stylesheet" type="text/css"/>
         </ui:insert>
         <link rel="icon" type="image/png" href="#{pathContextRoot}/resources/images/anl.ico"/>
-        <title>#{resources.CdbPortalTitle}<ui:insert name="pageTitle"></ui:insert></title>
+        <title>#{resources.CdbPortalTitle}<ui:insert name="pageTitle"></ui:insert></title>                
     </h:head>
 
     <h:body class="#{bodyStyle}">
@@ -36,11 +40,24 @@
                 <div>
                     <div id="topRight" class="topRightContent">
                         <ui:insert name="topRight">
-                            <p:outputLabel value="Username: #{loginController.displayUsername()}"/>
+                            <p:outputLabel id="currentUserLoggedInLabel" 
+                                           value="Username: #{loginController.displayUsername()}"/>
                             <br/>
 
                             <p:outputLabel value="Role: #{loginController.displayRole()}"/>
                             <br/>
+                                                        
+                            <h:form>
+                                <p:outputLabel id="portalResetSession"
+                                               styleClass="clckableLabel"
+                                               value="Reset Session"
+                                               onclick="resetPortalSession()">
+                                    <p:tooltip for="portalResetSession" 
+                                               value="Reset current session while maitaining current login" />
+                                </p:outputLabel>        
+                                <p:remoteCommand name="resetPortalSession"
+                                                 action="#{loginController.resetSession()}"/> 
+                            </h:form>
 
                             <ui:include src="../views/settings/private/settingsViewAsLabelDialog.xhtml" />
                             <ui:include src="../views/itemProject/private/itemProjectSelectedLabelDialog.xhtml" />
@@ -49,7 +66,7 @@
                     </div>
                     <div id="topCenter" class="topCenterContent">
                         <ui:insert name="topCenter">
-                            <h1 class="title">#{resources.CdbPortalTitle}</h1>
+                            <h1 class="title">#{resources.CdbPortalTitle}</h1>                            
                         </ui:insert>
                     </div>
                 </div>
@@ -100,14 +117,99 @@
             <div id="bottom" class="bottomContent">
                 <ui:insert name="bottom">
                     <h:form prependId="false">
-                        <p:growl id="messages" showDetail="true" autoUpdate="true"/>
+                        <h:outputText style="display: none" id="viewOpenPageIdHiddenText"
+                                      value="#{clientViewManagerController.viewUUID}"/>
+
+                        <h:outputText style="display: none" id="currentTimeHashHiddenText"
+                                      value="#{clientViewManagerController.currentTimeHash}" /> 
+
+                        <input style="display: none"
+                               id="viewCurrentPageIdHiddenText"/>     
+                        
+                        <p:remoteCommand name="prepareNewViewID"
+                                         action="#{clientViewManagerController.generateNewViewUUID()}"
+                                         update="viewOpenPageIdHiddenText"
+                                         process="@this"
+                                         oncomplete="setCurrentPageViewId()" /> 
+
+                        <p:remoteCommand name="prepareTestExistingViewID" 
+                                         update="viewOpenPageIdHiddenText"
+                                         process="@this"                                       
+                                         oncomplete="testExistingPageId()" /> 
+
+                        <p:remoteCommand name="verifyViewOpenPageIdHiddenText"
+                                         update="viewOpenPageIdHiddenText currentTimeHashHiddenText"
+                                         process="@this"
+                                         oncomplete="completeVerifyViewOpenPage()"/>                 
+
+                        <p:growl id="messages"
+                                 showDetail="true"
+                                 life="7000"/>
+
                         <p:idleMonitor timeout="#{loginController.sessionTimeoutInMiliseconds}"
-                                       onidle="displaySessionTimeout()">
-                            <p:remoteCommand name="displaySessionTimeout"
-                                             oncomplete="PF('sessionTimeoutDialogWidget').show()"/>
-                            <p:ajax event="idle" listener="#{loginController.sessionIdleListener}" 
-                                    immediate="true" async="true"/> 
-                        </p:idleMonitor>
+                                       onidle="sessionTimedOutEvent()"/>                                             
+                        
+                        <p:remoteCommand name="invalidateCurrentSession"
+                                         action="#{loginController.sessionIdleListener}" /> 
+                        
+                        <p:remoteCommand autoRun="#{!loginController.registeredSession}"
+                                         action="#{loginController.registerSession()}"/>                                                 
+
+                        <p:dialog widgetVar="invalidUseOfBackButtonDialogWidget"
+                                  modal="true"
+                                  closable="false"
+                                  styleClass="viewTransparentBackgroundDialog"
+                                  draggable="false"
+                                  resizable="false"
+                                  header="Use of back button is not allowed">
+                            To avoid invalid session data, usage of back button is not allowed.                             
+                            <f:facet name="footer">
+                                <p:commandButton value="Go back to home" 
+                                                 icon="fa fa-home"
+                                                 onclick="handleSessionTimeout('#{pathContextRoot}');" />
+                                <p:commandButton value="Go to last session URL" 
+                                                 icon="fa fa-arrow-right"
+                                                 action="#{clientViewManagerController.redrectToLastShownUrl()}" />
+                            </f:facet>
+                        </p:dialog>
+
+                        <p:dialog widgetVar="invalidUseOfMultipleTabsDialogWidget"
+                                  modal="true"
+                                  closable="false"
+                                  styleClass="viewTransparentBackgroundDialog"
+                                  draggable="false"
+                                  resizable="false"
+                                  header="Use of tabs or windows is not allowed">
+                            To avoid invalid session data, usage of multiple browser windows/tabs is not allowed. 
+                            <f:facet name="footer">
+                                <p:commandButton value="Go back to home"
+                                                 icon="fa fa-home"
+                                                 onclick="handleSessionTimeout('#{pathContextRoot}');" />
+                                <p:commandButton value="Go to last session URL" 
+                                                 icon="fa fa-arrow-right"
+                                                 action="#{clientViewManagerController.redrectToLastShownUrl()}" />
+                            </f:facet>
+                        </p:dialog>
+
+                        <p:dialog widgetVar="sessionLostDialogWidget"
+                                  modal="true"
+                                  resizable="false"
+                                  closable="true"
+                                  header="Session Lost"
+                                  draggable="false"
+                                  styleClass="viewTransparentBackgroundDialog">
+                            <p:outputLabel value="It appears that the connection to server has been lost. The server may have been taken offline for updates." />
+                            <f:facet name="footer">
+                                <p:commandButton value="Attempt to Go to last session URL" 
+                                                 icon="fa fa-arrow-right"
+                                                 action="#{clientViewManagerController.redrectToLastShownUrl()}"
+                                                 onstart="PF('loadingDialog').show()"
+                                                 onerror="PF('loadingDialog').hide()"/>                                
+                                <p:commandButton value="Go back to home" 
+                                                 icon="fa fa-home"
+                                                 onclick="handleSessionTimeout('#{pathContextRoot}');" />
+                            </f:facet>
+                        </p:dialog>
 
                         <p:dialog widgetVar="sessionTimeoutDialogWidget"
                                   modal="true"
@@ -119,10 +221,12 @@
                             <p:outputLabel value="Your session has expired due to inactivity." />
                             <f:facet name="footer">
                                 <p:commandButton value="Go back to home" 
+                                                 icon="fa fa-home"
                                                  onclick="handleSessionTimeout('#{pathContextRoot}');" />
                             </f:facet>
                         </p:dialog>                       
                         <h:outputScript library="javascript" name="sessionTimeout.js"/>
+                        <h:outputScript library="javascript" name="portal.js"/>
                     </h:form>
                     <footer>
                         <h:outputText value="Copyright &#169; #{resources.CdbCopyrightNotice}"/>   

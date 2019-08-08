@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from cdbWebServiceCli import CdbWebServiceCli
 from cdb.cdb_web_service.api.userRestApi import UserRestApi
 
@@ -22,6 +28,9 @@ Description:
 
 #######################################################################
 # Run command.
-if __name__ == '__main__':
+def runCommand():
     cli = GetUsersCli()
     cli.run()
+
+if __name__ == '__main__':
+    runCommand()

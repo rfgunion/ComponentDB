@@ -1,12 +1,13 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
@@ -90,7 +91,7 @@ public class Log extends CdbEntity implements Serializable {
     public Log() {
     }
 
-    public Log(Integer id) {
+    public Log(Integer id) {        
         this.id = id;
     }
 
@@ -98,6 +99,7 @@ public class Log extends CdbEntity implements Serializable {
         this.id = id;
         this.text = text;
         this.enteredOnDateTime = enteredOnDateTime;
+        this.effectiveFromDateTime = enteredOnDateTime; 
     }
 
     public Integer getId() {
@@ -116,6 +118,7 @@ public class Log extends CdbEntity implements Serializable {
         this.text = text;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getEnteredOnDateTime() {
         return enteredOnDateTime;
     }
@@ -140,6 +143,7 @@ public class Log extends CdbEntity implements Serializable {
         this.logTopic = logTopic;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getEffectiveFromDateTime() {
         return effectiveFromDateTime;
     }
@@ -148,6 +152,7 @@ public class Log extends CdbEntity implements Serializable {
         this.effectiveFromDateTime = effectiveFromDateTime;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getEffectiveToDateTime() {
         return effectiveToDateTime;
     }
@@ -205,6 +210,13 @@ public class Log extends CdbEntity implements Serializable {
         }
         return shortDisplayDateFormat.format(enteredOnDateTime);
 
+    }
+    
+    public void addLogLevel(LogLevel logLevel) {
+        if (logLevelList == null) {
+            logLevelList = new ArrayList<>(); 
+        }
+        logLevelList.add(logLevel);
     }
 
     @Override

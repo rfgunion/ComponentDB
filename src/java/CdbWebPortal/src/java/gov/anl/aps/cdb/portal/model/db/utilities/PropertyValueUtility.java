@@ -1,11 +1,6 @@
 /*
- * Copyright (c) 2014-2015, Argonne National Laboratory.
- *
- * SVN Information:
- *   $HeadURL: https://svn.aps.anl.gov/cdb/trunk/src/java/CdbWebPortal/src/java/gov/anl/aps/cdb/portal/model/db/utilities/PropertyValueUtility.java $
- *   $Date: 2016-03-30 13:29:49 -0500 (Wed, 30 Mar 2016) $
- *   $Revision: 1249 $
- *   $Author: djarosz $
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.utilities;
 
@@ -68,14 +63,12 @@ public class PropertyValueUtility {
             if (index >= 0) {
                 // Original property was there.
                 PropertyValue originalPropertyValue = originalPropertyValueList.get(index);
-                if (!newPropertyValue.equalsByTagAndValueAndUnitsAndDescription(originalPropertyValue)) {
+                if (!newPropertyValue.equalsByTagAndValueAndUnitsAndDescriptionAndMetadata(originalPropertyValue)) {
                     // Property value was modified.
                     logger.debug("Property value for type " + originalPropertyValue.getPropertyType()
                             + " was modified (original value: " + originalPropertyValue + "; new value: " + newPropertyValue + ")");
                     newPropertyValue.setEnteredByUser(entityInfo.getLastModifiedByUser());
-                    newPropertyValue.setEnteredOnDateTime(entityInfo.getLastModifiedOnDateTime());
-                    newPropertyValue.setDisplayValue(null);
-                    newPropertyValue.setTargetValue(null);
+                    newPropertyValue.setEnteredOnDateTime(entityInfo.getLastModifiedOnDateTime());                    
 
                     // Save history
                     List<PropertyValueHistory> propertyValueHistoryList = newPropertyValue.getPropertyValueHistoryList();

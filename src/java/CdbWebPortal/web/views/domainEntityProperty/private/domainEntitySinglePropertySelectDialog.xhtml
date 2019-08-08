@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
@@ -29,11 +33,20 @@
                                  />
                 
                 <p:commandButton value="Done" alt="Done" 
-                                 oncomplete='#{entityTypeName}propertySelectionMade()'
+                                 onclick="PF('loadingDialog').show()"
+                                 id="#{entityTypeName}SinglePropertySelectDialogDoneButton"
+                                 oncomplete="PF('loadingDialog').hide(); #{entityTypeName}propertySelectionMade()"
                                  icon="ui-icon-arrowreturnthick-1-w"/>
             </f:facet>
         </div>
     </p:dialog>
+    
+    <p:remoteCommand name="#{entityTypeName}ShowSinglePropertySelectDialog"
+                     update="#{entityTypeName}SinglePropertySelectDialog"
+                     oncomplete="PF('#{entityTypeName}SinglePropertySelectDialogWidget').show()">
+        <f:setPropertyActionListener value="#{entityController.defaultDomainName}"
+                                     target="#{propertyTypeController.filterViewDomain}" /> 
+    </p:remoteCommand>
     
     <ui:include src="domainEntitySelectionFilterViewCustomizeDisplayDialog.xhtml">
         <ui:param name="viewName" value="Single" />

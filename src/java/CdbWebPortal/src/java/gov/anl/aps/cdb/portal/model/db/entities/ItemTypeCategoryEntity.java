@@ -1,10 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gov.anl.aps.cdb.portal.controllers.ItemController;
 import java.io.Serializable;
 
@@ -31,6 +31,7 @@ public abstract class ItemTypeCategoryEntity extends CdbEntity implements Serial
         return "Category"; 
     }
     
+    @JsonIgnore
     public boolean getHasCategories() {
         if (this instanceof ItemCategory) {
             return false; 
@@ -41,6 +42,7 @@ public abstract class ItemTypeCategoryEntity extends CdbEntity implements Serial
         return false; 
     }
     
+    @JsonIgnore
     public boolean getHasTypes() {
         if (this instanceof ItemType) {
             return false; 

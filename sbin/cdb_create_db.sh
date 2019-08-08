@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+# Copyright (c) UChicago Argonne, LLC. All rights reserved.
+# See LICENSE file.
+
 
 #
 # Script used for creating CDB database
@@ -28,10 +32,10 @@ if [ -z "${CDB_ROOT_DIR}" ]; then
 fi
 CDB_ENV_FILE=${CDB_ROOT_DIR}/setup.sh
 if [ ! -f ${CDB_ENV_FILE} ]; then
-    echo "Environment file ${CDB_ENV_FILE} does not exist." 
+    echo "Environment file ${CDB_ENV_FILE} does not exist."
     exit 1
 fi
-. ${CDB_ENV_FILE} > /dev/null 
+. ${CDB_ENV_FILE} > /dev/null
 CDB_ETC_DIR=$CDB_INSTALL_DIR/etc
 
 # Use first argument as db name, if provided
@@ -53,8 +57,9 @@ else
 fi
 
 # Second argument overrides directory with db population scripts
-CDB_SQL_DIR=$CDB_ROOT_DIR/db/sql/$CDB_DB_NAME
-CDB_DB_SCRIPTS_DIR=${CDB_DB_SCRIPTS_DIR:=$CDB_SQL_DIR}
+CDB_SQL_DIR=$CDB_ROOT_DIR/db/sql
+CDB_DB_RESTORE_DIR=$CDB_INSTALL_DIR/db/$CDB_DB_NAME
+CDB_DB_SCRIPTS_DIR=${CDB_DB_SCRIPTS_DIR:=$CDB_DB_RESTORE_DIR}
 if [ ! -z "$2" ]; then
     CDB_DB_SCRIPTS_DIR=$2
     if [ -f "$2/create_cdb_tables.sql" ]; then
@@ -63,6 +68,8 @@ if [ ! -z "$2" ]; then
 fi
 if [ ! -d $CDB_DB_SCRIPTS_DIR ]; then
     echo "DB Scripts directory $CDB_DB_SCRIPTS_DIR does not exist."
+    echo "Usage: "
+    echo "$0 [CDB_DB_NAME [CDB_DB_SCRIPTS_DIR] [ONLY_TABLES_BIT 0/1]]"
     exit 1
 fi
 
@@ -78,7 +85,7 @@ if [ -z "$CDB_DB_ADMIN_PASSWORD" ]; then
 fi
 
 
-# Read user db password if needed 
+# Read user db password if needed
 CDB_DB_PASSWORD=$CDB_DB_USER_PASSWORD
 if [ -z "$CDB_DB_USER_PASSWORD" ]; then
     CDB_DB_PASSWD_FILE="$CDB_INSTALL_DIR/etc/$CDB_DB_NAME.db.passwd"
@@ -147,13 +154,14 @@ for host in $CDB_DB_ADMIN_HOSTS; do
     IDENTIFIED BY '$CDB_DB_PASSWORD';" >> $sqlFile
 done
 execute "$mysqlCmd < $sqlFile"
-
 # create db tables
 mysqlCmd="$mysqlCmd -D $CDB_DB_NAME <"
 execute $mysqlCmd create_cdb_tables.sql
+execute $mysqlCmd create_views.sql
+execute $mysqlCmd create_stored_procedures.sql
 
 # create db password file
-if [ ! -d $CDB_ETC_DIR ]; then 
+if [ ! -d $CDB_ETC_DIR ]; then
     mkdir -p $CDB_ETC_DIR
 fi
 passwordFile=$CDB_ETC_DIR/$CDB_DB_NAME.db.passwd
@@ -164,13 +172,37 @@ if [ "$3" == "1" ]; then
     exit 0
 fi
 
+function executePopulateScripts {
+    for dbTable in $1; do
+        dbFile=populate_$dbTable.sql
+        if [ -f $dbFile ]; then
+            echo "Populating $dbTable using $dbFile script"
+            execute $mysqlCmd $dbFile || exit 1
+        else
+            echo "$dbFile not found, skipping $dbTable update"
+        fi
+    done
+}
+
+STATIC_DB_SCRIPTS_DIR="$CDB_SQL_DIR/static"
+cd $CURRENT_DIR && cd $STATIC_DB_SCRIPTS_DIR
+STATIC_CDB_DB_TABLES="\
+    setting_type \
+    domain \
+    entity_type \
+    allowed_entity_type_domain \
+    relationship_type_handler \
+    relationship_type \
+"
+
+executePopulateScripts "$STATIC_CDB_DB_TABLES"
+
 # populate db
 cd $CURRENT_DIR && cd $CDB_DB_SCRIPTS_DIR
 CDB_DB_TABLES="\
     user_info \
     user_group \
     user_user_group \
-    setting_type \
     user_group_setting \
     user_setting \
     entity_info \
@@ -185,7 +217,6 @@ CDB_DB_TABLES="\
     log_attachment \
     log_level \
     system_log \
-    domain \
     item \
     item_element \
     item_element_log \
@@ -196,8 +227,7 @@ CDB_DB_TABLES="\
     item_item_type \
     item_category_item_type \
     item_project \
-    item_item_project \
-    entity_type \
+    item_item_project \ 
     item_entity_type \
     allowed_child_entity_type \
     source \
@@ -208,8 +238,6 @@ CDB_DB_TABLES="\
     connector \
     item_connector \
     item_resource \
-    relationship_type_handler \
-    relationship_type \
     item_element_relationship \
     item_element_relationship_history \
     property_type_handler \
@@ -220,7 +248,6 @@ CDB_DB_TABLES="\
     allowed_property_value \
     allowed_entity_type \
     allowed_property_domain \
-    allowed_entity_type_domain \
     property_value \
     property_metadata \
     property_value_history \
@@ -229,15 +256,12 @@ CDB_DB_TABLES="\
     item_element_property \
     connector_property \
 "
-for dbTable in $CDB_DB_TABLES; do
-    dbFile=populate_$dbTable.sql
-    if [ -f $dbFile ]; then
-        echo "Populating $dbTable using $dbFile script"
-        execute $mysqlCmd $dbFile || exit 1
-    else
-        echo "$dbFile not found, skipping $dbTable update"
-    fi
-done
+
+executePopulateScripts "$CDB_DB_TABLES"
+
+
+cd $CDB_SQL_DIR
+execute $mysqlCmd create_triggers.sql
 
 echo "select username from user_info inner join user_user_group on user_info.id = user_user_group.user_id inner join user_group on user_group.id = user_user_group.user_group_id where user_group.name = 'CDB_ADMIN' and user_info.password is not null;" > temporaryAdminCommand.sql
 

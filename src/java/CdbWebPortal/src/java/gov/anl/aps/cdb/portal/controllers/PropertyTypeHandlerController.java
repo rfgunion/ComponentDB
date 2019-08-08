@@ -1,16 +1,17 @@
+/*
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
+ */
 package gov.anl.aps.cdb.portal.controllers;
 
 import gov.anl.aps.cdb.common.exceptions.ObjectAlreadyExists;
-import gov.anl.aps.cdb.portal.model.db.beans.CdbEntityFacade;
+import gov.anl.aps.cdb.portal.controllers.settings.PropertyTypeHandlerSettings;
 import gov.anl.aps.cdb.portal.model.db.beans.PropertyTypeHandlerFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeHandler;
-import gov.anl.aps.cdb.portal.model.db.entities.SettingEntity;
-import gov.anl.aps.cdb.portal.model.db.entities.SettingType;
-import gov.anl.aps.cdb.portal.model.db.entities.UserInfo;
+import gov.anl.aps.cdb.portal.plugins.CdbPluginManager;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import javax.ejb.EJB;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -22,18 +23,13 @@ import org.apache.log4j.Logger;
 
 @Named("propertyTypeHandlerController")
 @SessionScoped
-public class PropertyTypeHandlerController extends CdbEntityController<PropertyTypeHandler, PropertyTypeHandlerFacade> implements Serializable {
-
-    /*
-     * Controller specific settings
-     */
-    private static final String DisplayNumberOfItemsPerPageSettingTypeKey = "PropertyTypeHandler.List.Display.NumberOfItemsPerPage";
-    private static final String DisplayIdSettingTypeKey = "PropertyTypeHandler.List.Display.Id";
-    private static final String DisplayDescriptionSettingTypeKey = "PropertyTypeHandler.List.Display.Description";
-    private static final String FilterByNameSettingTypeKey = "PropertyTypeHandler.List.FilterBy.Name";
-    private static final String FilterByDescriptionSettingTypeKey = "PropertyTypeHandler.List.FilterBy.Description";
+public class PropertyTypeHandlerController extends CdbEntityController<PropertyTypeHandler, PropertyTypeHandlerFacade, PropertyTypeHandlerSettings> implements Serializable {
 
     private static final Logger logger = Logger.getLogger(PropertyTypeHandlerController.class.getName());
+    
+    private CdbPluginManager cdbPluginManager; 
+    
+    private List<PropertyTypeHandler> allPossiblePropertyTypeHandlersForNewPropertyType = null; 
 
     @EJB
     private PropertyTypeHandlerFacade propertyTypeHandlerFacade;
@@ -74,6 +70,53 @@ public class PropertyTypeHandlerController extends CdbEntityController<PropertyT
     public List<PropertyTypeHandler> getAvailableItems() {
         return super.getAvailableItems();
     }
+    
+    public List<PropertyTypeHandler> getAllPossiblePropertyTypeHandlersForNewPropertyType() {
+        List<PropertyTypeHandler> availableItems = getAvailableItems();
+        if (cdbPluginManager == null) {
+            cdbPluginManager = CdbPluginManager.getInstance();
+        }
+        
+        
+        // Add property type handlers that are plugins that do not yet have a db record. 
+        List<String> allPluginPropertyTypeHandlerNames = cdbPluginManager.getAllPluginPropertyTypeHandlerNames();
+        
+        for (PropertyTypeHandler propertyTypeHandler : availableItems) {             
+            for (String pluginPropertyTypeHandlerName : allPluginPropertyTypeHandlerNames) {
+                if (propertyTypeHandler.getName().equals(pluginPropertyTypeHandlerName)) {
+                    allPluginPropertyTypeHandlerNames.remove(pluginPropertyTypeHandlerName); 
+                    break; 
+                }
+            }
+        }
+        
+        if (allPluginPropertyTypeHandlerNames.size() > 0) {
+            for (int i = 0; i < allPluginPropertyTypeHandlerNames.size(); i++) {
+                String pluginPropertyTypeHanlder = allPluginPropertyTypeHandlerNames.get(i); 
+                PropertyTypeHandler newHandler = createEntityInstance();            
+                // Temporarly assigned to identifiy the list item. 
+                newHandler.setId((i+1)*-1);
+                newHandler.setName(pluginPropertyTypeHanlder);
+                newHandler.setDescription("Automatically added for plugin");
+                availableItems.add(newHandler); 
+            }
+
+            allPossiblePropertyTypeHandlersForNewPropertyType = availableItems; 
+        }
+                
+        return availableItems;                         
+    }
+    
+   public PropertyTypeHandler getPropertyTypeHandlerFromAllPossible(int id) {
+       if (allPossiblePropertyTypeHandlersForNewPropertyType != null) {
+        for (PropertyTypeHandler propertyTypeHandler : allPossiblePropertyTypeHandlersForNewPropertyType) {
+            if (propertyTypeHandler.getId() == id) {                
+                return propertyTypeHandler; 
+            }
+        }
+       }
+       return getEntity(id);
+   }
 
     @Override
     public void prepareEntityInsert(PropertyTypeHandler propertyTypeHandler) throws ObjectAlreadyExists {
@@ -86,48 +129,11 @@ public class PropertyTypeHandlerController extends CdbEntityController<PropertyT
 
     @Override
     public void prepareEntityUpdate(PropertyTypeHandler propertyHandler) throws ObjectAlreadyExists {
-    }
+    }   
 
     @Override
-    public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
-        if (settingTypeMap == null) {
-            return;
-        }
-
-        displayNumberOfItemsPerPage = Integer.parseInt(settingTypeMap.get(DisplayNumberOfItemsPerPageSettingTypeKey).getDefaultValue());
-        displayId = Boolean.parseBoolean(settingTypeMap.get(DisplayIdSettingTypeKey).getDefaultValue());
-        displayDescription = Boolean.parseBoolean(settingTypeMap.get(DisplayDescriptionSettingTypeKey).getDefaultValue());
-
-        filterByName = settingTypeMap.get(FilterByNameSettingTypeKey).getDefaultValue();
-        filterByDescription = settingTypeMap.get(FilterByDescriptionSettingTypeKey).getDefaultValue();
-    }
-
-    @Override
-    public void updateSettingsFromSessionSettingEntity(SettingEntity settingEntity) {
-        if (settingEntity == null) {
-            return;
-        }
-
-        displayNumberOfItemsPerPage = settingEntity.getSettingValueAsInteger(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
-        displayId = settingEntity.getSettingValueAsBoolean(DisplayIdSettingTypeKey, displayId);
-        displayDescription = settingEntity.getSettingValueAsBoolean(DisplayDescriptionSettingTypeKey, displayDescription);
-
-        filterByName = settingEntity.getSettingValueAsString(FilterByNameSettingTypeKey, filterByName);
-        filterByDescription = settingEntity.getSettingValueAsString(FilterByDescriptionSettingTypeKey, filterByDescription);
-    }
-
-    @Override
-    public void saveSettingsForSessionSettingEntity(SettingEntity settingEntity) {
-        if (settingEntity == null) {
-            return;
-        }
-
-        settingEntity.setSettingValue(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
-        settingEntity.setSettingValue(DisplayIdSettingTypeKey, displayId);
-        settingEntity.setSettingValue(DisplayDescriptionSettingTypeKey, displayDescription);
-
-        settingEntity.setSettingValue(FilterByNameSettingTypeKey, filterByName);
-        settingEntity.setSettingValue(FilterByDescriptionSettingTypeKey, filterByDescription);
+    protected PropertyTypeHandlerSettings createNewSettingObject() {
+        return new PropertyTypeHandlerSettings(this);
     }
 
     /**
@@ -144,7 +150,8 @@ public class PropertyTypeHandlerController extends CdbEntityController<PropertyT
             try {
                 PropertyTypeHandlerController controller = (PropertyTypeHandlerController) facesContext.getApplication().getELResolver().
                         getValue(facesContext.getELContext(), null, "propertyTypeHandlerController");
-                return controller.getEntity(getIntegerKey(value));
+                int id = getIntegerKey(value);
+                return controller.getPropertyTypeHandlerFromAllPossible(id); 
             } catch (Exception ex) {
                 // we cannot get entity from a given key
                 logger.warn("Value " + value + " cannot be converted to property type handler object.");

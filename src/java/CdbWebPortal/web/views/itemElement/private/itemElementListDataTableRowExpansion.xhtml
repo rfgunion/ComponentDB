@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui">
     <ui:param name="viewMode" value="inViewRowExpansion" />
+    <ui:param name="itemElementSettingObject" value="#{itemElementController.settingObject}" />
 
     <p:outputPanel styleClass="domainEntityRowExpansionDetails">
         <p:accordionPanel activeIndex="" multiple="true"  dynamic="true">
-            <p:tab title="Bill of Materials (a.k.a List of item elements)">
+            <p:tab title="Elements"
+                   rendered="#{itemElementController.isDisplayRowExpansionElementsList(itemElementObject)}">
                 <p:treeTable id="itemElementTreeTable#{itemElementObject.viewUUID}"
                              value="#{itemElementController.getItemElementListTreeTableRootNode(itemElementObject)}" 
                              var="itemElementTreeObject"
@@ -16,7 +22,7 @@
                              sortBy="#{itemElementTreeObject.customizableSortOrder}"
                              resizableColumns="true"
                              liveResize="true"
-                             rowStyleClass="#{itemElementController.getDisplayRowColor(itemElementTreeObject)}">
+                             rowStyleClass="#{itemElementController.getDisplayRowStyle(itemElementTreeObject)}">
                     <p:column sortBy="#{itemElementTreeObject.name}" headerText="Element Name">
                         <h:outputText value="#{itemElementTreeObject.name}"/>
                     </p:column>
@@ -27,7 +33,7 @@
 
                     <ui:include src="itemElementListObjectActions.xhtml" >
                         <ui:param name="itemElementObject" value="#{itemElementTreeObject}" />
-                        <ui:param name="rendered" value="#{itemElementController.displayBillOfMaterialsActionColumn}" />
+                        <ui:param name="rendered" value="#{itemElementSettingObject.displayBillOfMaterialsActionColumn}" />
                     </ui:include>
                 </p:treeTable>
             </p:tab>
@@ -37,7 +43,7 @@
     <ui:include src="../../domainEntityRowExpansion/private/domainEntityListDataTableRowExpansion.xhtml">
         <ui:param name="entityObject" value="#{itemElementObject}" />
         <ui:param name="entityController" value="#{itemElementController}" />
-        <ui:param name="loadPropertyValues" value="#{loadPropertyValues != null ? loadPropertyValues : itemElementController.loadRowExpansionPropertyValues}" />
+        <ui:param name="loadPropertyValues" value="#{loadPropertyValues != null ? loadPropertyValues : itemElementSettingObject.loadRowExpansionPropertyValues}" />
     </ui:include>
 </ui:composition>
 

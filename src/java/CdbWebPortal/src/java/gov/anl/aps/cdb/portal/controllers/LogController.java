@@ -1,14 +1,21 @@
+/*
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
+ */
 package gov.anl.aps.cdb.portal.controllers;
 
 import gov.anl.aps.cdb.portal.model.db.entities.Log;
 import gov.anl.aps.cdb.portal.model.db.beans.LogFacade;
+import gov.anl.aps.cdb.portal.model.db.beans.LogLevelFacade;
+import gov.anl.aps.cdb.portal.model.db.beans.UserInfoFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.LogLevel;
-import gov.anl.aps.cdb.portal.model.db.entities.SettingEntity;
-import gov.anl.aps.cdb.portal.model.db.entities.SettingType;
+import gov.anl.aps.cdb.portal.model.db.entities.UserInfo;
+import gov.anl.aps.cdb.portal.utilities.SessionUtility;
+import gov.anl.aps.cdb.portal.controllers.settings.LogSettings;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import javax.ejb.EJB;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -17,45 +24,57 @@ import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 import org.apache.log4j.Logger;
-import org.primefaces.component.datatable.DataTable;
 
 @Named("logController")
 @SessionScoped
-public class LogController extends CdbEntityController<Log, LogFacade> implements Serializable {
+public class LogController extends CdbEntityController<Log, LogFacade, LogSettings> implements Serializable {       
 
-    /*
-     * Controller specific settings
-     */
-    private static final String DisplayAttachmentsSettingTypeKey = "Log.List.Display.Attachments";
-    private static final String DisplayNumberOfItemsPerPageSettingTypeKey = "Log.List.Display.NumberOfItemsPerPage";
-    private static final String DisplayIdSettingTypeKey = "Log.List.Display.Id";
-    private static final String DisplayEnteredByUserSettingTypeKey = "Log.List.Display.EnteredByUser";
-    private static final String DisplayEnteredOnDateTimeSettingTypeKey = "Log.List.Display.EnteredOnDateTime";
-    private static final String DisplayTopicSettingTypeKey = "Log.List.Display.Topic";
-    private static final String FilterByEnteredByUserSettingTypeKey = "Log.List.FilterBy.EnteredByUser";
-    private static final String FilterByEnteredOnDateTimeSettingTypeKey = "Log.List.FilterBy.EnteredOnDateTime";
-    private static final String FilterByTextSettingTypeKey = "Log.List.FilterBy.Text";
-    private static final String FilterByTopicSettingTypeKey = "Log.List.FilterBy.Topic";
-
-    private Boolean displayAttachments = null;
-    private Boolean displayEnteredByUser = null;
-    private Boolean displayEnteredOnDateTime = null;
-    private Boolean displayTopic = null;
-
-    private String filterByEnteredByUser = null;
-    private String filterByEnteredOnDateTime = null;
-    private String filterByText = null;
-    private String filterByTopic = null;
-    
     private final String SPARES_WARNING_LOG_LEVEL_NAME = "Spares Warning";
 
     private static final Logger logger = Logger.getLogger(LogController.class.getName());
 
+    private final String DEFAULT_SYSTEM_ADMIN_USERNAME = "cdb";
+
     @EJB
     private LogFacade logFacade;
 
+    @EJB
+    private LogLevelFacade logLevelFacade;
+
+    @EJB
+    private UserInfoFacade userInfoFacade;
+
+    private List<LogLevel> filterViewSelectedLogLevels = null;
+    private List<Log> filterViewListDataModelSystemLogs = null;
+    
+    private static LogController apiInstance; 
+
     public LogController() {
         super();
+    }
+
+    @Override
+    protected void loadEJBResourcesManually() {
+        super.loadEJBResourcesManually(); 
+        logFacade = LogFacade.getInstance();
+        logLevelFacade = LogLevelFacade.getInstance(); 
+        userInfoFacade = UserInfoFacade.getInstance();
+    }
+    
+    public static synchronized LogController getApiInstance() {
+        if (apiInstance == null) {
+            apiInstance = new LogController();            
+            apiInstance.prepareApiInstance(); 
+        }
+        return apiInstance;
+    }
+
+    public static LogController getInstance() {
+        if (SessionUtility.runningFaces()) {
+            return (LogController) SessionUtility.findBean("logController");
+        } else {
+            return getApiInstance();
+        }
     }
 
     @Override
@@ -85,97 +104,69 @@ public class LogController extends CdbEntityController<Log, LogFacade> implement
     public List<Log> getAvailableItems() {
         return super.getAvailableItems();
     }
-    
+
     public String getLogRowStyle(Log log) {
-        if (log.getLogLevelList() == null || log.getLogLevelList().isEmpty()){
+        if (log.getLogLevelList() == null || log.getLogLevelList().isEmpty()) {
             return "";
         }
-        
+
         for (LogLevel logLevel : log.getLogLevelList()) {
             if (logLevel.getName().equals(SPARES_WARNING_LOG_LEVEL_NAME)) {
-                return "logWarningRow"; 
+                return "logWarningRow";
             }
         }
-        
-        return ""; 
+
+        return "";
     }
-    @Override
-    public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
-        if (settingTypeMap == null) {
-            return;
+
+    public void addSystemLog(String logLevelName, String logMessage) {
+        UserInfo enteredByUser = userInfoFacade.findByUsername(DEFAULT_SYSTEM_ADMIN_USERNAME);
+        if (enteredByUser == null) {
+            SessionUtility.addErrorMessage("System Admin Missing",
+                    "User '" + DEFAULT_SYSTEM_ADMIN_USERNAME + "' needs to be in the system. Please notify system administrator.");
         }
 
-        displayAttachments = Boolean.parseBoolean(settingTypeMap.get(DisplayAttachmentsSettingTypeKey).getDefaultValue());
-        displayNumberOfItemsPerPage = Integer.parseInt(settingTypeMap.get(DisplayNumberOfItemsPerPageSettingTypeKey).getDefaultValue());
-        displayId = Boolean.parseBoolean(settingTypeMap.get(DisplayIdSettingTypeKey).getDefaultValue());
-        displayEnteredByUser = Boolean.parseBoolean(settingTypeMap.get(DisplayEnteredByUserSettingTypeKey).getDefaultValue());
-        displayEnteredOnDateTime = Boolean.parseBoolean(settingTypeMap.get(DisplayEnteredOnDateTimeSettingTypeKey).getDefaultValue());
-        displayTopic = Boolean.parseBoolean(settingTypeMap.get(DisplayTopicSettingTypeKey).getDefaultValue());
+        Date enteredOnDateTime = new Date();
 
-        filterByEnteredByUser = settingTypeMap.get(FilterByEnteredByUserSettingTypeKey).getDefaultValue();
-        filterByEnteredOnDateTime = settingTypeMap.get(FilterByEnteredOnDateTimeSettingTypeKey).getDefaultValue();
-        filterByText = settingTypeMap.get(FilterByTextSettingTypeKey).getDefaultValue();
-        filterByTopic = settingTypeMap.get(FilterByTopicSettingTypeKey).getDefaultValue();
-    }
-
-    @Override
-    public void updateSettingsFromSessionSettingEntity(SettingEntity settingEntity) {
-        if (settingEntity == null) {
-            return;
+        LogLevel logLevel = logLevelFacade.findLogLevelByName(logLevelName);
+        if (logLevel == null) {
+            logLevel = new LogLevel();
+            logLevel.setName(logLevelName);
+            logLevelFacade.create(logLevel);
         }
 
-        displayAttachments = settingEntity.getSettingValueAsBoolean(DisplayAttachmentsSettingTypeKey, displayAttachments);
-        displayNumberOfItemsPerPage = settingEntity.getSettingValueAsInteger(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
-        displayId = settingEntity.getSettingValueAsBoolean(DisplayIdSettingTypeKey, displayId);
-        displayEnteredByUser = settingEntity.getSettingValueAsBoolean(DisplayEnteredByUserSettingTypeKey, displayEnteredByUser);
-        displayEnteredOnDateTime = settingEntity.getSettingValueAsBoolean(DisplayEnteredOnDateTimeSettingTypeKey, displayEnteredOnDateTime);
-        displayTopic = settingEntity.getSettingValueAsBoolean(DisplayTopicSettingTypeKey, displayTopic);
+        Log newSystemLog = createEntityInstance();
+        newSystemLog.addLogLevel(logLevel);
+        newSystemLog.setText(logMessage);
+        newSystemLog.setEnteredOnDateTime(enteredOnDateTime);
+        newSystemLog.setEnteredByUser(enteredByUser);
 
-        filterByEnteredByUser = settingEntity.getSettingValueAsString(FilterByEnteredByUserSettingTypeKey, filterByEnteredByUser);
-        filterByEnteredOnDateTime = settingEntity.getSettingValueAsString(FilterByEnteredOnDateTimeSettingTypeKey, filterByEnteredOnDateTime);
-        filterByText = settingEntity.getSettingValueAsString(FilterByTextSettingTypeKey, filterByText);
-        filterByTopic = settingEntity.getSettingValueAsString(FilterByTopicSettingTypeKey, filterByTopic);
+        setCurrent(newSystemLog);
+        create(true, true);
+    }
+    
+    public List<LogLevel> getFilterViewSelectedLogLevels() {
+        return filterViewSelectedLogLevels;
     }
 
-    @Override
-    public void updateListSettingsFromListDataTable(DataTable dataTable) {
-        super.updateListSettingsFromListDataTable(dataTable);
-        if (dataTable == null) {
-            return;
+    public void setFilterViewSelectedLogLevels(List<LogLevel> fitlerViewSelectedLogLevels) {
+        this.filterViewSelectedLogLevels = fitlerViewSelectedLogLevels;
+        this.filterViewListDataModelSystemLogs = null;
+    }
+
+    public List<Log> getFilterViewListDataModelSystemLogs() {
+        if (filterViewListDataModelSystemLogs == null) {
+            if (filterViewSelectedLogLevels != null && !filterViewSelectedLogLevels.isEmpty()) {
+                // Load in the list data model for system logs
+                filterViewListDataModelSystemLogs = logFacade.findByFilterViewSystemLogAttributes(filterViewSelectedLogLevels);
+            }
         }
-        Map<String, Object> filters = dataTable.getFilters();
-        filterByEnteredByUser = (String) filters.get("enteredByUser");
-        filterByEnteredOnDateTime = (String) filters.get("enteredOnDateTime");
-        filterByText = (String) filters.get("text");
-        filterByTopic = (String) filters.get("topic");
+        return filterViewListDataModelSystemLogs;
     }
 
     @Override
-    public void saveSettingsForSessionSettingEntity(SettingEntity settingEntity) {
-        if (settingEntity == null) {
-            return;
-        }
-
-        settingEntity.setSettingValue(DisplayAttachmentsSettingTypeKey, displayAttachments);
-        settingEntity.setSettingValue(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
-        settingEntity.setSettingValue(DisplayIdSettingTypeKey, displayId);
-        settingEntity.setSettingValue(DisplayEnteredByUserSettingTypeKey, displayEnteredByUser);
-        settingEntity.setSettingValue(DisplayEnteredOnDateTimeSettingTypeKey, displayEnteredOnDateTime);
-        settingEntity.setSettingValue(DisplayTopicSettingTypeKey, displayTopic);
-
-        settingEntity.setSettingValue(FilterByEnteredByUserSettingTypeKey, filterByEnteredByUser);
-        settingEntity.setSettingValue(FilterByEnteredOnDateTimeSettingTypeKey, filterByEnteredOnDateTime);
-        settingEntity.setSettingValue(FilterByTextSettingTypeKey, filterByText);
-        settingEntity.setSettingValue(FilterByTopicSettingTypeKey, filterByTopic);
-    }
-
-    @Override
-    public void clearListFilters() {
-        super.clearListFilters();
-        filterByEnteredByUser = null;
-        filterByEnteredOnDateTime = null;
-        filterByText = null;
-        filterByTopic = null;
+    protected LogSettings createNewSettingObject() {
+        return new LogSettings(this);
     }
 
     /**
@@ -223,70 +214,6 @@ public class LogController extends CdbEntityController<Log, LogFacade> implement
             }
         }
 
-    }
-
-    public Boolean getDisplayEnteredByUser() {
-        return displayEnteredByUser;
-    }
-
-    public void setDisplayEnteredByUser(Boolean displayEnteredByUser) {
-        this.displayEnteredByUser = displayEnteredByUser;
-    }
-
-    public Boolean getDisplayEnteredOnDateTime() {
-        return displayEnteredOnDateTime;
-    }
-
-    public void setDisplayEnteredOnDateTime(Boolean displayEnteredOnDateTime) {
-        this.displayEnteredOnDateTime = displayEnteredOnDateTime;
-    }
-
-    public Boolean getDisplayAttachments() {
-        return displayAttachments;
-    }
-
-    public void setDisplayAttachments(Boolean displayAttachments) {
-        this.displayAttachments = displayAttachments;
-    }
-
-    public Boolean getDisplayTopic() {
-        return displayTopic;
-    }
-
-    public void setDisplayTopic(Boolean displayTopic) {
-        this.displayTopic = displayTopic;
-    }
-
-    public String getFilterByEnteredByUser() {
-        return filterByEnteredByUser;
-    }
-
-    public void setFilterByEnteredByUser(String filterByEnteredByUser) {
-        this.filterByEnteredByUser = filterByEnteredByUser;
-    }
-
-    public String getFilterByEnteredOnDateTime() {
-        return filterByEnteredOnDateTime;
-    }
-
-    public void setFilterByEnteredOnDateTime(String filterByEnteredOnDateTime) {
-        this.filterByEnteredOnDateTime = filterByEnteredOnDateTime;
-    }
-
-    public String getFilterByText() {
-        return filterByText;
-    }
-
-    public void setFilterByText(String filterByText) {
-        this.filterByText = filterByText;
-    }
-
-    public String getFilterByTopic() {
-        return filterByTopic;
-    }
-
-    public void setFilterByTopic(String filterByTopic) {
-        this.filterByTopic = filterByTopic;
-    }
+    }    
 
 }

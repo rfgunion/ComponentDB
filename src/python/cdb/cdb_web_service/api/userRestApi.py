@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 import os
 import urllib
 
@@ -9,6 +15,7 @@ from cdb.common.exceptions.invalidRequest import InvalidRequest
 from cdb.common.api.cdbRestApi import CdbRestApi
 from cdb.common.objects.userInfo import UserInfo
 from cdb.common.objects.userGroup import UserGroup
+
 
 class UserRestApi(CdbRestApi):
     
@@ -42,6 +49,15 @@ class UserRestApi(CdbRestApi):
         url = '%s/usersByUsername/%s' % (self.getContextRoot(), username)
         responseData = self.sendRequest(url=url, method='GET')
         return UserInfo(responseData)
+
+    def getUserGroupByName(self, groupName):
+        if groupName is None:
+            raise InvalidRequest('Group name must be provided.')
+
+        url = '%s/userGroupsByName/%s' % (self.getContextRoot(), groupName)
+
+        responseData = self.sendRequest(url=url, method='GET')
+        return UserGroup(responseData)
 
 #######################################################################
 # Testing.

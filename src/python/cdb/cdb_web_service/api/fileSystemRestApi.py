@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 import os
 import urllib
 
 from cdb.common.utility.encoder import Encoder
 from cdb.common.exceptions.cdbException import CdbException
 from cdb.common.api.cdbRestApi import CdbRestApi
+
 
 class FileSystemRestApi(CdbRestApi):
     

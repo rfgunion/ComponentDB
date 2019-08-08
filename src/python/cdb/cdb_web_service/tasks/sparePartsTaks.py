@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
 from collections import OrderedDict
 from cdb.common.db.api.itemDbApi import ItemDbApi
 from cdb.common.db.api.userDbApi import UserDbApi
@@ -13,7 +19,9 @@ from cdb.common.exceptions.cdbException import CdbException
 
 class SparePartsTask:
 
-    SPARE_PARTS_INDICATOR_PROPERTY_TYPE_NAME = 'Spare Part Indication'
+    ITEM_DOMAIN_INVENTORY_STATUS_PROPERTY_TYPE_NAME = "Component Instance Status"
+    ITEM_DOMAIN_INVENTORY_STATUS_SPARE_VALUE = "Spare"
+
     SPARE_PARTS_CONFIGURATION_PROPERTY_TYPE_NAME = 'Spare Parts Configuration'
     SPARE_PARTS_CONFIGURATION_MIN_KEY = 'minQuantity'
     SPARE_PARTS_CONFIGURATION_EMAIL_KEY = 'email'
@@ -33,11 +41,12 @@ class SparePartsTask:
         self.logger = LoggingManager.getInstance().getLogger(self.__class__.__name__)
 
     def getPropertyMetadataDict(self, propertyValue):
-        propertyMetadataList = propertyValue.data['propertyMetadata']
+        propertyValueId = propertyValue.data['id']
+        propertyMetadataList = self.propertyDbApi.getPropertyMetadataForPropertyValueId(propertyValueId)
         propertyMetadataDict = {}
         for propertyMetadata in propertyMetadataList:
-            key = propertyMetadata.metadata_key
-            value = propertyMetadata.metadata_value
+            key = propertyMetadata.data['metadataKey']
+            value = propertyMetadata.data['metadataValue']
             propertyMetadataDict[key] = value
         return propertyMetadataDict
 
@@ -103,9 +112,9 @@ class SparePartsTask:
                 # Use owner user email.
                 email = self.getOwnerUserEmail(catalogItemId)
 
-            sparePartsList = self.itemDbApi.getItemsWithPropertyType(self.SPARE_PARTS_INDICATOR_PROPERTY_TYPE_NAME,
+            sparePartsList = self.itemDbApi.getItemsWithPropertyType(self.ITEM_DOMAIN_INVENTORY_STATUS_PROPERTY_TYPE_NAME,
                                                                      itemDerivedFromItemId=catalogItemId,
-                                                                     propertyValueMatch='true')
+                                                                     propertyValueMatch=self.ITEM_DOMAIN_INVENTORY_STATUS_SPARE_VALUE)
             spares = sparePartsList.__len__()
 
             if minSpares > spares:

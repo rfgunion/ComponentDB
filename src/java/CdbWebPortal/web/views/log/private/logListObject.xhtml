@@ -1,47 +1,89 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:f="http://java.sun.com/jsf/core"
                 xmlns:p="http://primefaces.org/ui">
-    
+
+    <ui:param name="logSettingObject" value="#{logController.settingObject}" />
+
     <ui:param name="filterable" value="#{filterable != null ? filterable : false}" />
 
     <p:column sortBy="#{logObject.id}" headerText="Id" 
-              rendered="#{logController.displayId}"
+              rendered="#{logSettingObject.displayId}"
               filterable="#{filterable}">
         <h:outputText value="#{logObject.id}"/>
     </p:column>
 
-    <p:column sortBy="#{logObject.enteredOnDateTime}" headerText="Time"
+    <p:column sortBy="#{logObject.enteredOnDateTime}" headerText="Entered Time"
               filterBy="#{logObject.enteredOnDateTime}" filterMatchMode="contains"
-              filterValue="#{logController.filterByEnteredOnDateTime}"
+              filterValue="#{logSettingObject.filterByEnteredOnDateTime}"
               filterStyle="width:60px"
               filterable="#{filterable}"
               style="width:85px"
-              rendered="#{logController.displayEnteredOnDateTime}">
+              rendered="#{logSettingObject.displayEnteredOnDateTime}">
         <h:outputText value="#{logObject.shortDisplayEnteredOnDateTime}"/>
+    </p:column>
+
+    <p:column sortBy="#{logObject.effectiveFromDateTime}"
+              filterBy="#{logObject.effectiveFromDateTime}"
+              filterable="#{filterable}" filterMatchMode="contains"
+              headerText="Date"
+              rendered="#{logSettingObject.displayEffectiveFromDateTime}">
+        <p:cellEditor>
+            <f:facet name="output">
+                <h:outputText value="#{logObject.effectiveFromDateTime}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </f:facet>
+            <f:facet name="input">
+                <p:calendar id="effectiveFromDate" 
+                            value="#{logObject.effectiveFromDateTime}" /> 
+            </f:facet>
+        </p:cellEditor>
+    </p:column>
+
+    <p:column sortBy="#{logObject.effectiveToDateTime}"
+              filterBy="#{logObject.effectiveToDateTime}"
+              filterable="#{filterable}" filterMatchMode="contains"
+              headerText="End Date"
+              rendered="#{logSettingObject.displayEffectiveToDateTime}">
+        <p:cellEditor>
+            <f:facet name="output">
+                <h:outputText value="#{logObject.effectiveToDateTime}">
+                    <f:convertDateTime pattern="MM-dd-yyyy" />
+                </h:outputText>
+            </f:facet>
+            <f:facet name="input">
+                <p:calendar id="effectiveToDate" 
+                            value="#{logObject.effectiveToDateTime}" /> 
+            </f:facet>
+        </p:cellEditor>
     </p:column>
 
     <p:column sortBy="#{logObject.enteredByUser.username}" headerText="User"
               filterBy="#{logObject.enteredByUser}" filterMatchMode="contains"
-              filterValue="#{logController.filterByEnteredByUser}"
+              filterValue="#{logSettingObject.filterByEnteredByUser}"
               filterStyle="width:40px"
               filterable="#{filterable}"
               style="width:50px"
-              rendered="#{logController.displayEnteredByUser}">
+              rendered="#{logSettingObject.displayEnteredByUser}">
         <h:outputText value="#{logObject.enteredByUser.username}"/>
     </p:column>
 
     <p:column sortBy="#{logObject.logTopic}" headerText="Topic" 
               filterBy="#{logObject.logTopic}" filterMatchMode="exact"
               filterOptions="#{logTopicController.availableItemsForSelectOne}"
-              filterValue="#{logController.filterByTopic}"
+              filterValue="#{logSettingObject.filterByTopic}"
               filterStyle="width:40px"
               filterable="#{filterable}"
               style="width:50px"
-              rendered="#{logController.displayTopic}">
+              rendered="#{logSettingObject.displayTopic}">
         <p:cellEditor>
             <f:facet name="output">
                 <h:outputText value="#{logObject.logTopic.name}"/>
@@ -56,12 +98,13 @@
     </p:column>
 
     <p:column sortBy="#{logObject.text}" headerText="Log Entry"
+              id="logEntryColumn"
               filterBy="#{logObject.text}" filterMatchMode="contains"
-              filterValue="#{logController.filterByText}"
+              filterValue="#{logSettingObject.filterByText}"
               filterStyle="width:80px"
               filterable="#{filterable}"
               style="width:200px">
-        <p:cellEditor>
+        <p:cellEditor id="logEntryColumnCellEditor">
             <f:facet name="output">
                 <h:outputText value="#{logObject.text}"/>
             </f:facet>
@@ -70,20 +113,19 @@
                 <p:tooltip for="logEntry" value="Enter log entry text."/>
             </f:facet>
         </p:cellEditor>
-    </p:column>
+    </p:column>   
 
     <p:column style="width:35px"
               headerText="Attachments"
-              rendered="#{logController.displayAttachments}"
-              filterable="#{filterable}">
-            <f:facet name="header">
-                <h:graphicImage alt="Attachments" library="images" name="attachment.ico"/>
-            </f:facet>
-            <ui:repeat var="attachment" value="#{logObject.attachmentList}">
-                <h:outputLink value="#{attachment.filePath}" target="_page_#{attachment.name}" title="#{attachment.name}" styleClass="entityDataIcon">
-                    <h:graphicImage alt="Attachment" library="images" name="attachment.ico"/>
-                </h:outputLink>   
-            </ui:repeat>
+              rendered="#{logSettingObject.displayAttachments}"
+              filterable="#{filterable}"
+              exportable="false">
+        <f:facet name="header">
+            <h:graphicImage alt="Attachments" library="images" name="attachment.ico"/>
+        </f:facet>
+        <ui:repeat var="attachment" value="#{logObject.attachmentList}">
+            <ui:include src="logAttachmentObject.xhtml"/>
+        </ui:repeat>
     </p:column>
 
 </ui:composition>

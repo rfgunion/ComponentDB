@@ -1,18 +1,29 @@
+/*
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
+ */
 package gov.anl.aps.cdb.portal.controllers;
 
 import gov.anl.aps.cdb.common.exceptions.ObjectAlreadyExists;
+import gov.anl.aps.cdb.portal.controllers.settings.PropertyTypeSettings;
+import gov.anl.aps.cdb.portal.model.db.beans.AllowedPropertyMetadataValueFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyType;
 import gov.anl.aps.cdb.portal.model.db.beans.PropertyTypeFacade;
+import gov.anl.aps.cdb.portal.model.db.beans.PropertyTypeMetadataFacade;
+import gov.anl.aps.cdb.portal.model.db.entities.AllowedPropertyMetadataValue;
 import gov.anl.aps.cdb.portal.model.db.entities.AllowedPropertyValue;
 import gov.anl.aps.cdb.portal.model.db.entities.CdbDomainEntity;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeCategory;
 import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeHandler;
-import gov.anl.aps.cdb.portal.model.db.entities.SettingEntity;
-import gov.anl.aps.cdb.portal.model.db.entities.SettingType;
+import gov.anl.aps.cdb.portal.model.db.entities.PropertyTypeMetadata;
+import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerFactory;
+import gov.anl.aps.cdb.portal.model.jsf.handlers.PropertyTypeHandlerInterface;
+import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import javax.ejb.EJB;
 import javax.inject.Named;
@@ -24,61 +35,43 @@ import javax.faces.convert.FacesConverter;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
 import org.apache.log4j.Logger;
-import org.primefaces.component.datatable.DataTable;
 
 @Named("propertyTypeController")
 @SessionScoped
-public class PropertyTypeController extends CdbEntityController<PropertyType, PropertyTypeFacade> implements Serializable {
-
-    /*
-     * Controller specific settings
-     */
-    private static final String DisplayNumberOfItemsPerPageSettingTypeKey = "PropertyType.List.Display.NumberOfItemsPerPage";
-    private static final String DisplayIdSettingTypeKey = "PropertyType.List.Display.Id";
-    private static final String DisplayDescriptionSettingTypeKey = "PropertyType.List.Display.Description";
-    private static final String DisplayCategorySettingTypeKey = "PropertyType.List.Display.Category";
-    private static final String DisplayDefaultUnitsSettingTypeKey = "PropertyType.List.Display.DefaultUnits";
-    private static final String DisplayDefaultValueSettingTypeKey = "PropertyType.List.Display.DefaultValue";
-    private static final String DisplayHandlerSettingTypeKey = "PropertyType.List.Display.Handler";
-    private static final String FilterByNameSettingTypeKey = "PropertyType.List.FilterBy.Name";
-    private static final String FilterByDescriptionSettingTypeKey = "PropertyType.List.FilterBy.Description";
-    private static final String FilterByCategorySettingTypeKey = "PropertyType.List.FilterBy.Category";
-    private static final String FilterByDefaultUnitsSettingTypeKey = "PropertyType.List.FilterBy.DefaultUnits";
-    private static final String FilterByDefaultValueSettingTypeKey = "PropertyType.List.FilterBy.DefaultValue";
-    private static final String FilterByHandlerSettingTypeKey = "PropertyType.List.FilterBy.Handler";
+public class PropertyTypeController extends CdbEntityController<PropertyType, PropertyTypeFacade, PropertyTypeSettings> implements Serializable {
 
     private static final Logger logger = Logger.getLogger(PropertyTypeController.class.getName());
+
+    private Boolean selectFilterViewDisplayCategory = null;
+    private Boolean selectFilterViewDisplayHandler = null;
 
     @EJB
     private PropertyTypeFacade propertyTypeFacade;
 
-    private Boolean displayCategory = null;
-    private Boolean displayDefaultUnits = null;
-    private Boolean displayDefaultValue = null;
-    private Boolean displayHandler = null;
+    @EJB
+    private PropertyTypeMetadataFacade propertyTypeMetadataFacade;
 
-    private String filterByCategory = null;
-    private String filterByDefaultUnits = null;
-    private String filterByDefaultValue = null;
-    private String filterByHandler = null;
+    @EJB
+    private AllowedPropertyMetadataValueFacade allowedPropertyMetadataValueFacade;
 
-    private Boolean selectFilterViewDisplayCategory = null;
-    private Boolean selectFilterViewDisplayHandler = null;
-    private Boolean selectDisplayDefaultUnits = true;
-    private Boolean selectDisplayDefaultValue = true;
-
-    private String selectFilterByCategory = null;
-    private String selectFilterByDefaultUnits = null;
-    private String selectFilterByDefaultValue = null;
-    private String selectFilterByHandler = null;
-
+    private final Boolean FILTER_VIEW_IS_INTERNAL = false;
     private List<PropertyTypeCategory> fitlerViewSelectedPropertyTypeCategories = null;
     private List<PropertyTypeHandler> fitlerViewSelectedPropertyTypeHandlers = null;
+    private String currentViewDomain = null;
 
     private DataModel filterViewDataModel;
+    
+    private DataModel currentItemPropertyTypeDataModel; 
+    
+    private List<PropertyType> cachedPropertyTypes = null; 
 
     public PropertyTypeController() {
-        selectDisplayDescription = true;  
+        super();
+        settingObject.setSelectDisplayDescription(true);
+    }
+
+    public static PropertyTypeController getInstance() {
+        return (PropertyTypeController) SessionUtility.findBean("propertyTypeController");
     }
 
     @Override
@@ -94,6 +87,13 @@ public class PropertyTypeController extends CdbEntityController<PropertyType, Pr
         propertyType.setIsUserWriteable(false);
         propertyType.setIsDynamic(false);
         return propertyType;
+    } 
+
+    @Override
+    public void resetListDataModel() {
+        super.resetListDataModel(); 
+        
+        cachedPropertyTypes = null; 
     }
 
     @Override
@@ -130,7 +130,14 @@ public class PropertyTypeController extends CdbEntityController<PropertyType, Pr
 
     @Override
     public List<PropertyType> getAvailableItems() {
-        return super.getAvailableItems();
+        if (cachedPropertyTypes == null) {
+            cachedPropertyTypes = super.getAvailableItems();
+        }
+        return cachedPropertyTypes; 
+    }
+
+    public List<PropertyType> getAvailableExternalItems() {
+        return propertyTypeFacade.findByPropertyInternalStatus(false);
     }
 
     @Override
@@ -140,118 +147,60 @@ public class PropertyTypeController extends CdbEntityController<PropertyType, Pr
             throw new ObjectAlreadyExists("Property type " + propertyType.getName() + " already exists.");
         }
         logger.debug("Inserting new property type " + propertyType.getName());
+        verifyAndApplyPropertyTypeHandlerRequirements(propertyType);                
     }
 
     @Override
     public void prepareEntityUpdate(PropertyType propertyType) throws ObjectAlreadyExists {
+        propertyType.resetCachedVales();
         PropertyType existingPropertyType = propertyTypeFacade.findByName(propertyType.getName());
         if (existingPropertyType != null && !existingPropertyType.getId().equals(propertyType.getId())) {
             throw new ObjectAlreadyExists("Property type " + propertyType.getName() + " already exists.");
         }
         logger.debug("Updating property type " + propertyType.getName());
+        verifyAndApplyPropertyTypeHandlerRequirements(propertyType);
     }
-
-    @Override
-    public void updateSettingsFromSettingTypeDefaults(Map<String, SettingType> settingTypeMap) {
-        if (settingTypeMap == null) {
-            return;
+    
+    private void verifyAndApplyPropertyTypeHandlerRequirements(PropertyType propertyType) {
+        PropertyTypeHandler propertyTypeHandler = propertyType.getPropertyTypeHandler();
+        if (propertyTypeHandler != null) {
+            // Remove invalid id used to identify the new handler. 
+            if (propertyTypeHandler.getId() < 0) {
+                propertyTypeHandler.setId(null);
+            }
+            
+            PropertyTypeHandlerInterface handlerClass = PropertyTypeHandlerFactory.getHandler(propertyTypeHandler.getName());
+            List<String> requiredMetadataKeys = handlerClass.getRequiredMetadataKeys();
+            if (requiredMetadataKeys != null && requiredMetadataKeys.size() > 0) {
+                if (propertyType.getPropertyTypeMetadataList() == null) {
+                    propertyType.setPropertyTypeMetadataList(new ArrayList<>());
+                }
+                
+                List<PropertyTypeMetadata> propertyTypeMetadataList = propertyType.getPropertyTypeMetadataList();
+                
+                
+                List<String> keysToCreate = new LinkedList<>();
+                for (String requiredKey : requiredMetadataKeys) {
+                    boolean found = false; 
+                    for (PropertyTypeMetadata ptm : propertyTypeMetadataList) {
+                        if(ptm.getMetadataKey().equals(requiredKey)) {
+                            found = true; 
+                            break; 
+                        }
+                    }
+                    if (!found) {
+                        keysToCreate.add(requiredKey); 
+                    }
+                }
+                
+                for (String key : keysToCreate) {
+                    PropertyTypeMetadata ptm = new PropertyTypeMetadata();
+                    ptm.setPropertyType(propertyType);
+                    ptm.setMetadataKey(key);
+                    propertyTypeMetadataList.add(ptm);                     
+                }
+            } 
         }
-
-        displayNumberOfItemsPerPage = Integer.parseInt(settingTypeMap.get(DisplayNumberOfItemsPerPageSettingTypeKey).getDefaultValue());
-        displayId = Boolean.parseBoolean(settingTypeMap.get(DisplayIdSettingTypeKey).getDefaultValue());
-        displayDescription = Boolean.parseBoolean(settingTypeMap.get(DisplayDescriptionSettingTypeKey).getDefaultValue());
-
-        displayCategory = Boolean.parseBoolean(settingTypeMap.get(DisplayCategorySettingTypeKey).getDefaultValue());
-        displayDefaultUnits = Boolean.parseBoolean(settingTypeMap.get(DisplayDefaultUnitsSettingTypeKey).getDefaultValue());
-        displayDefaultValue = Boolean.parseBoolean(settingTypeMap.get(DisplayDefaultValueSettingTypeKey).getDefaultValue());
-        displayHandler = Boolean.parseBoolean(settingTypeMap.get(DisplayHandlerSettingTypeKey).getDefaultValue());
-
-        filterByName = settingTypeMap.get(FilterByNameSettingTypeKey).getDefaultValue();
-        filterByDescription = settingTypeMap.get(FilterByDescriptionSettingTypeKey).getDefaultValue();
-
-        filterByCategory = settingTypeMap.get(FilterByCategorySettingTypeKey).getDefaultValue();
-        filterByDefaultUnits = settingTypeMap.get(FilterByDefaultUnitsSettingTypeKey).getDefaultValue();
-        filterByDefaultValue = settingTypeMap.get(FilterByDefaultValueSettingTypeKey).getDefaultValue();
-        filterByHandler = settingTypeMap.get(FilterByHandlerSettingTypeKey).getDefaultValue();
-    }
-
-    @Override
-    public void updateSettingsFromSessionSettingEntity(SettingEntity settingEntity) {
-        if (settingEntity == null) {
-            return;
-        }
-
-        displayNumberOfItemsPerPage = settingEntity.getSettingValueAsInteger(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
-        displayId = settingEntity.getSettingValueAsBoolean(DisplayIdSettingTypeKey, displayId);
-        displayDescription = settingEntity.getSettingValueAsBoolean(DisplayDescriptionSettingTypeKey, displayDescription);
-
-        displayCategory = settingEntity.getSettingValueAsBoolean(DisplayCategorySettingTypeKey, displayCategory);
-        displayDefaultUnits = settingEntity.getSettingValueAsBoolean(DisplayDefaultUnitsSettingTypeKey, displayDefaultUnits);
-        displayDefaultValue = settingEntity.getSettingValueAsBoolean(DisplayDefaultValueSettingTypeKey, displayDefaultValue);
-        displayHandler = settingEntity.getSettingValueAsBoolean(DisplayHandlerSettingTypeKey, displayHandler);
-
-        filterByName = settingEntity.getSettingValueAsString(FilterByNameSettingTypeKey, filterByName);
-        filterByDescription = settingEntity.getSettingValueAsString(FilterByDescriptionSettingTypeKey, filterByDescription);
-
-        filterByCategory = settingEntity.getSettingValueAsString(FilterByCategorySettingTypeKey, filterByCategory);
-        filterByDefaultUnits = settingEntity.getSettingValueAsString(FilterByDefaultUnitsSettingTypeKey, filterByDefaultUnits);
-        filterByDefaultValue = settingEntity.getSettingValueAsString(FilterByDefaultValueSettingTypeKey, filterByDefaultValue);
-        filterByHandler = settingEntity.getSettingValueAsString(FilterByHandlerSettingTypeKey, filterByHandler);
-    }
-
-    @Override
-    public void updateListSettingsFromListDataTable(DataTable dataTable) {
-        super.updateListSettingsFromListDataTable(dataTable);
-        if (dataTable == null) {
-            return;
-        }
-        Map<String, Object> filters = dataTable.getFilters();
-        filterByCategory = (String) filters.get("propertyTypeCategory.name");
-        filterByDefaultUnits = (String) filters.get("defaultUnits");
-        filterByDefaultValue = (String) filters.get("defaultValue");
-        filterByHandler = (String) filters.get("handlerName");
-    }
-
-    @Override
-    public void saveSettingsForSessionSettingEntity(SettingEntity settingEntity) {
-        if (settingEntity == null) {
-            return;
-        }
-
-        settingEntity.setSettingValue(DisplayNumberOfItemsPerPageSettingTypeKey, displayNumberOfItemsPerPage);
-        settingEntity.setSettingValue(DisplayIdSettingTypeKey, displayId);
-        settingEntity.setSettingValue(DisplayDescriptionSettingTypeKey, displayDescription);
-
-        settingEntity.setSettingValue(DisplayCategorySettingTypeKey, displayCategory);
-        settingEntity.setSettingValue(DisplayDefaultUnitsSettingTypeKey, displayDefaultUnits);
-        settingEntity.setSettingValue(DisplayDefaultValueSettingTypeKey, displayDefaultValue);
-        settingEntity.setSettingValue(DisplayHandlerSettingTypeKey, displayHandler);
-
-        settingEntity.setSettingValue(FilterByNameSettingTypeKey, filterByName);
-        settingEntity.setSettingValue(FilterByDescriptionSettingTypeKey, filterByDescription);
-
-        settingEntity.setSettingValue(FilterByCategorySettingTypeKey, filterByCategory);
-        settingEntity.setSettingValue(FilterByDefaultUnitsSettingTypeKey, filterByDefaultUnits);
-        settingEntity.setSettingValue(FilterByDefaultValueSettingTypeKey, filterByDefaultValue);
-        settingEntity.setSettingValue(FilterByHandlerSettingTypeKey, filterByHandler);
-    }
-
-    @Override
-    public void clearListFilters() {
-        super.clearListFilters();
-        filterByCategory = null;
-        filterByDefaultUnits = null;
-        filterByDefaultValue = null;
-        filterByHandler = null;
-    }
-
-    @Override
-    public void clearSelectFilters() {
-        super.clearSelectFilters();
-        selectFilterByCategory = null;
-        selectFilterByDefaultUnits = null;
-        selectFilterByDefaultValue = null;
-        selectFilterByHandler = null;
     }
 
     @Override
@@ -279,146 +228,10 @@ public class PropertyTypeController extends CdbEntityController<PropertyType, Pr
     }
 
     public void prepareSelectPropertyTypesForDomainEntity(CdbDomainEntity domainEntity) {
-        clearSelectFilters();
+        settingObject.clearSelectFilters();
         resetSelectDataModel();
         List<PropertyType> selectPropertyTypeList = getEntityDbFacade().findAll();
         createSelectDataModel(selectPropertyTypeList);
-    }
-
-    public Boolean getDisplayCategory() {
-        return displayCategory;
-    }
-
-    public void setDisplayCategory(Boolean displayCategory) {
-        this.displayCategory = displayCategory;
-    }
-
-    public Boolean getDisplayDefaultUnits() {
-        return displayDefaultUnits;
-    }
-
-    public void setDisplayDefaultUnits(Boolean displayDefaultUnits) {
-        this.displayDefaultUnits = displayDefaultUnits;
-    }
-
-    public Boolean getDisplayDefaultValue() {
-        return displayDefaultValue;
-    }
-
-    public void setDisplayDefaultValue(Boolean displayDefaultValue) {
-        this.displayDefaultValue = displayDefaultValue;
-    }
-
-    public Boolean getDisplayHandler() {
-        return displayHandler;
-    }
-
-    public void setDisplayHandler(Boolean displayHandler) {
-        this.displayHandler = displayHandler;
-    }
-
-    public String getFilterByCategory() {
-        return filterByCategory;
-    }
-
-    public void setFilterByCategory(String filterByCategory) {
-        this.filterByCategory = filterByCategory;
-    }
-
-    public String getFilterByDefaultUnits() {
-        return filterByDefaultUnits;
-    }
-
-    public void setFilterByDefaultUnits(String filterByDefaultUnits) {
-        this.filterByDefaultUnits = filterByDefaultUnits;
-    }
-
-    public String getFilterByDefaultValue() {
-        return filterByDefaultValue;
-    }
-
-    public void setFilterByDefaultValue(String filterByDefaultValue) {
-        this.filterByDefaultValue = filterByDefaultValue;
-    }
-
-    public String getFilterByHandler() {
-        return filterByHandler;
-    }
-
-    public void setFilterByHandler(String filterByHandler) {
-        this.filterByHandler = filterByHandler;
-    }
-
-    public Boolean getSelectDisplayDefaultUnits() {
-        return selectDisplayDefaultUnits;
-    }
-
-    public void setSelectDisplayDefaultUnits(Boolean selectDisplayDefaultUnits) {
-        this.selectDisplayDefaultUnits = selectDisplayDefaultUnits;
-    }
-
-    public Boolean getSelectDisplayDefaultValue() {
-        return selectDisplayDefaultValue;
-    }
-
-    public void setSelectDisplayDefaultValue(Boolean selectDisplayDefaultValue) {
-        this.selectDisplayDefaultValue = selectDisplayDefaultValue;
-    }
-
-    public String getSelectFilterByCategory() {
-        return selectFilterByCategory;
-    }
-
-    public void setSelectFilterByCategory(String selectFilterByCategory) {
-        this.selectFilterByCategory = selectFilterByCategory;
-    }
-
-    public String getSelectFilterByDefaultUnits() {
-        return selectFilterByDefaultUnits;
-    }
-
-    public void setSelectFilterByDefaultUnits(String selectFilterByDefaultUnits) {
-        this.selectFilterByDefaultUnits = selectFilterByDefaultUnits;
-    }
-
-    public String getSelectFilterByDefaultValue() {
-        return selectFilterByDefaultValue;
-    }
-
-    public void setSelectFilterByDefaultValue(String selectFilterByDefaultValue) {
-        this.selectFilterByDefaultValue = selectFilterByDefaultValue;
-    }
-
-    public String getSelectFilterByHandler() {
-        return selectFilterByHandler;
-    }
-
-    public void setSelectFilterByHandler(String selectFilterByHandler) {
-        this.selectFilterByHandler = selectFilterByHandler;
-    }
-
-    public Boolean getSelectFilterViewDisplayCategory() {
-        if (selectFilterViewDisplayCategory == null) {
-            if (fitlerViewSelectedPropertyTypeCategories != null) {
-                int size = fitlerViewSelectedPropertyTypeCategories.size();
-                selectFilterViewDisplayCategory = size == 0 || size > 1;
-            } else {
-                selectFilterViewDisplayCategory = true;
-            }
-        }
-        return selectFilterViewDisplayCategory;
-    }
-
-    public Boolean getSelectFilterViewDisplayHandler() {
-        if (selectFilterViewDisplayHandler == null) {
-            if (fitlerViewSelectedPropertyTypeHandlers != null) {
-                int size = fitlerViewSelectedPropertyTypeHandlers.size();
-                selectFilterViewDisplayHandler = size == 0 || size > 1;
-            } else {
-                selectFilterViewDisplayHandler = true;
-            }
-        }
-        return selectFilterViewDisplayHandler;
     }
 
     public List<PropertyTypeCategory> getFitlerViewSelectedPropertyTypeCategories() {
@@ -443,6 +256,18 @@ public class PropertyTypeController extends CdbEntityController<PropertyType, Pr
         }
     }
 
+    public String getFilterViewDomain() {
+        return currentViewDomain;
+    }
+
+    public void setFilterViewDomain(String filterViewDomain) {
+        if (!filterViewDomain.equals(this.currentViewDomain)) {
+            this.currentViewDomain = filterViewDomain;
+            this.fitlerViewSelectedPropertyTypeCategories = null; 
+            resetFilterViewDataModel();
+        }
+    }
+
     public void resetFilterViewDataModel() {
         filterViewDataModel = null;
         selectFilterViewDisplayCategory = null;
@@ -451,14 +276,130 @@ public class PropertyTypeController extends CdbEntityController<PropertyType, Pr
 
     public DataModel getFilterViewDataModel() {
         if (filterViewDataModel == null) {
-            List<PropertyType> results;
-            results = propertyTypeFacade.findByFilterViewAttributes(fitlerViewSelectedPropertyTypeCategories, fitlerViewSelectedPropertyTypeHandlers);
+            List<PropertyType> results = null;
+            if (currentViewDomain != null) {
+                results = propertyTypeFacade.findByFilterViewAttributes(fitlerViewSelectedPropertyTypeCategories,
+                        fitlerViewSelectedPropertyTypeHandlers,
+                        currentViewDomain,
+                        FILTER_VIEW_IS_INTERNAL);
+            }
             if (results != null) {
                 filterViewDataModel = new ListDataModel(results);
             }
         }
         return filterViewDataModel;
 
+    }
+    
+    public String prepareItemPropertyList(String itemDomainName) {
+        if (!itemDomainName.equals(currentViewDomain)) {
+            currentViewDomain = itemDomainName; 
+            currentItemPropertyTypeDataModel = null; 
+        }
+        return "/views/" + getEntityTypeName() + "/listForItem.xhtml?faces-redirect=true";
+    }
+
+    public DataModel getCurrentItemPropertyTypeDataModel() {
+        if (currentItemPropertyTypeDataModel == null) {
+            List<PropertyType> findByFilterViewAttributes = propertyTypeFacade.findByFilterViewAttributes(null, null, currentViewDomain, false);
+            currentItemPropertyTypeDataModel = new ListDataModel(findByFilterViewAttributes); 
+        }
+        return currentItemPropertyTypeDataModel;
+    }
+
+    public void setCurrentItemPropertyTypeDataModel(DataModel currentItemPropertyTypeDataModel) {
+        this.currentItemPropertyTypeDataModel = currentItemPropertyTypeDataModel;
+    }
+
+    public String getCurrentViewDomain() {
+        return currentViewDomain;
+    }
+
+    public void addPropertyTypeMetadataForCurrent() {
+        if (getCurrent() != null) {
+            PropertyTypeMetadata propertyTypeMetadata = new PropertyTypeMetadata();
+            propertyTypeMetadata.setPropertyType(getCurrent());
+            getCurrent().getPropertyTypeMetadataList().add(propertyTypeMetadata);
+        }
+    }
+
+    public void removePropertyTypeMetadataForCurrent(PropertyTypeMetadata propertyTypeMetadata) {
+        String viewUUID = propertyTypeMetadata.getViewUUID();
+        List<PropertyTypeMetadata> propertyTypeMetadataList = getCurrent().getPropertyTypeMetadataList();
+        for (int i = 0; i < propertyTypeMetadataList.size(); i++) {
+            PropertyTypeMetadata ptm = propertyTypeMetadataList.get(i);
+            if (ptm.getViewUUID().equals(viewUUID)) {
+                propertyTypeMetadataList.remove(i);
+                break;
+            }
+        }
+
+        // Save the removed property type metadata 
+        if (propertyTypeMetadata.getId() != null) {
+            propertyTypeMetadataFacade.remove(propertyTypeMetadata);
+            update();
+        }
+    }
+
+    public void savePropertyTypeMetadataList() {
+        update();
+    }
+
+    public void addAllowedPropertyMetadataValue(PropertyTypeMetadata propertyTypeMetadata) {
+        if (propertyTypeMetadata.getAllowedPropertyMetadataValueList() == null) {
+            propertyTypeMetadata.setAllowedPropertyMetadataValueList(new ArrayList<>());
+        }
+
+        AllowedPropertyMetadataValue allowedPropertyMetadataValue = new AllowedPropertyMetadataValue();
+        allowedPropertyMetadataValue.setPropertyTypeMetadata(propertyTypeMetadata);
+        propertyTypeMetadata.getAllowedPropertyMetadataValueList().add(allowedPropertyMetadataValue);
+    }
+
+    public void removeAllowedPropertyMetadataValue(AllowedPropertyMetadataValue allowedPropertyMetadataValue) {
+        String viewUUID = allowedPropertyMetadataValue.getViewUUID();
+        PropertyTypeMetadata propertyTypeMetadata = allowedPropertyMetadataValue.getPropertyTypeMetadata();
+        List<AllowedPropertyMetadataValue> allowedPropertyMetadataValueList = propertyTypeMetadata.getAllowedPropertyMetadataValueList();
+        for (int i = 0; i < allowedPropertyMetadataValueList.size(); i++) {
+            AllowedPropertyMetadataValue apmv = allowedPropertyMetadataValueList.get(i);
+            if (apmv.getViewUUID() == viewUUID) {
+                allowedPropertyMetadataValueList.remove(i);
+                break;
+            }
+        }
+
+        if (allowedPropertyMetadataValue.getId() != null) {
+            allowedPropertyMetadataValueFacade.remove(allowedPropertyMetadataValue);
+            update();
+        }
+    }
+
+    @Override
+    protected PropertyTypeSettings createNewSettingObject() {
+        return new PropertyTypeSettings(this);
+    }
+
+    public Boolean getSelectFilterViewDisplayCategory() {
+        if (selectFilterViewDisplayCategory == null) {
+            if (fitlerViewSelectedPropertyTypeCategories != null) {
+                int size = fitlerViewSelectedPropertyTypeCategories.size();
+                selectFilterViewDisplayCategory = size == 0 || size > 1;
+            } else {
+                selectFilterViewDisplayCategory = true;
+            }
+        }
+        return selectFilterViewDisplayCategory;
+    }
+
+    public Boolean getSelectFilterViewDisplayHandler() {
+        if (selectFilterViewDisplayHandler == null) {
+            if (fitlerViewSelectedPropertyTypeHandlers != null) {
+                int size = fitlerViewSelectedPropertyTypeHandlers.size();
+                selectFilterViewDisplayHandler = size == 0 || size > 1;
+            } else {
+                selectFilterViewDisplayHandler = true;
+            }
+        }
+        return selectFilterViewDisplayHandler;
     }
 
     /**

@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+# Copyright (c) UChicago Argonne, LLC. All rights reserved.
+# See LICENSE file.
+
 
 #
 # Script used for deploying CDB web service
@@ -27,9 +31,11 @@ if [ ! -z "$1" ]; then
 fi
 echo "Using DB name: $CDB_DB_NAME"
 
+CDB_INSTALL_DIR=${CDB_INSTALL_DIR:=$CDB_ROOT_DIR/..}
+
 # Look for deployment file in etc directory, and use it to override
 # default entries
-deployConfigFile=$CDB_ROOT_DIR/etc/${CDB_DB_NAME}.deploy.conf
+deployConfigFile=$CDB_INSTALL_DIR/etc/${CDB_DB_NAME}.deploy.conf
 if [ -f $deployConfigFile ]; then
     echo "Using deployment config file: $deployConfigFile"
     . $deployConfigFile
@@ -40,7 +46,6 @@ fi
 CDB_HOST_ARCH=`uname | tr [A-Z] [a-z]`-`uname -m`
 CDB_CONTEXT_ROOT=${CDB_CONTEXT_ROOT:=cdb}
 CDB_DATA_DIR=${CDB_DATA_DIR:=/cdb}
-CDB_INSTALL_DIR=${CDB_INSTALL_DIR:=$CDB_ROOT_DIR/..}
 CDB_ETC_DIR=${CDB_INSTALL_DIR}/etc
 CDB_SSL_DIR=${CDB_ETC_DIR}/ssl
 CDB_LOG_DIR=${CDB_INSTALL_DIR}/var/log
@@ -97,7 +102,7 @@ if [ ! -f $CDB_WEB_SERVICE_CONFIG_FILE ]; then
     if [[ -z $emailDomainSection ]]; then
       emailDomainSection=`hostname`
     fi
-    
+
     generatedAdminEmail="`whoami`@$emailDomainSection"
     generatedFromEmail="cdb@$emailDomainSection"
 
@@ -121,7 +126,17 @@ if [ ! -f $CDB_WEB_SERVICE_CONFIG_FILE ]; then
         ADMIN_EMAIL_ADDRESS="$generatedAdminEmail"
     fi
 
+    CDB_LDAP_LOOKUP_FILTER=`echo ${CDB_LDAP_LOOKUP_FILTER/&/\\\&}`
+
+    # uncomment principal authenticator
+    if [ ! -z $CDB_LDAP_SERVICE_DN ]; then
+        uncommentAuthenticator="sed 's?#principalAuthenticator3?principalAuthenticator3?g'"
+    else
+        uncommentAuthenticator="sed 's?#principalAuthenticator2?principalAuthenticator2?g'"
+    fi
+
     cmd="cat $CDB_ROOT_DIR/etc/cdb-web-service.conf.template \
+        | $uncommentAuthenticator \
         | sed 's?servicePort=.*?servicePort=$CDB_WEB_SERVICE_PORT?g' \
         | sed 's?sslCaCertFile=.*?sslCaCertFile=$CDB_CA_CERT_FILE?g' \
         | sed 's?sslCertFile=.*?sslCertFile=$CDB_WEB_SERVICE_CERT_FILE?g' \
@@ -134,6 +149,13 @@ if [ ! -f $CDB_WEB_SERVICE_CONFIG_FILE ]; then
         | sed 's?CDB_SENDER_EMAIL_ADDRESS?$CDB_SENDER_EMAIL_ADDRESS?g' \
         | sed 's?ADMIN_EMAIL_ADDRESS?$ADMIN_EMAIL_ADDRESS?g' \
         | sed 's?EMAIL_SUBJECT_START?$EMAIL_SUBJECT_START?g' \
+        | sed 's?CDB_LDAP_AUTH_SERVER_URL?$CDB_LDAP_AUTH_SERVER_URL?g' \
+        | sed 's?CDB_LDAP_AUTH_DN_FORMAT?$CDB_LDAP_AUTH_DN_FORMAT?g' \
+        | sed 's?CDB_LDAP_SERVICE_DN?$CDB_LDAP_SERVICE_DN?g' \
+        | sed 's?CDB_LDAP_SERVICE_PASS?$CDB_LDAP_SERVICE_PASS?g' \
+        | sed 's?CDB_LDAP_LOOKUP_FILTER?$CDB_LDAP_LOOKUP_FILTER?g' \
+        | sed 's?CDB_DATA_DIR?$CDB_DATA_DIR?g'\
+        | sed 's?CDB_ROOT_DIR?$CDB_ROOT_DIR?g'\
         > $CDB_WEB_SERVICE_CONFIG_FILE"
     eval $cmd || exit 1
 else
@@ -144,9 +166,10 @@ if [ -f $CDB_ROOT_DIR/etc/$CDB_DB_NAME.db.passwd ]; then
 fi
 
 # Modify version
+CDB_SOFTWARE_VERSION=`cat $CDB_ROOT_DIR/etc/version`
 echo "Modifying python module version"
 versionFile=$CDB_ROOT_DIR/src/python/cdb/__init__.py
-cmd="cat $versionFile | sed 's?__version__ =.*?__version__ = \"${CDB_SOFTWARE_VERSION}\"?g' | sed 's?CDB_DATE?$CDB_DATE?g' > $versionFile.2
+cmd="cat $versionFile | sed 's?__version__ =.*?__version__ = \"${CDB_SOFTWARE_VERSION} ($CDB_DATE)\"?g' > $versionFile.2
 && mv $versionFile.2 $versionFile"
 eval $cmd
 

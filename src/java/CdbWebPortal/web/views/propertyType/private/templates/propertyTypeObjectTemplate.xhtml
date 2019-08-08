@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -7,18 +11,21 @@
                 template="propertyTypeObjectTemplateBase.xhtml">
 
     <ui:define name="renderedColumnParams">
-        <ui:param name="renderIdColumn" value="#{renderIdColumn != null ? renderIdColumn : propertyTypeController.displayId}" />
-        <ui:param name="renderCategoryColumn" value="#{renderCategoryColumn != null ? renderCategoryColumn : propertyTypeController.displayCategory}" />
-        <ui:param name="renderDefaultUnitsColumn" value="#{renderDefaultUnitsColumn != null ? renderDefaultUnitsColumn : propertyTypeController.displayDefaultUnits}" />
-        <ui:param name="renderDefaultValueColumn" value="#{renderDefaultValueColumn != null ? renderDefaultValueColumn : propertyTypeController.displayDefaultValue}" />
-        <ui:param name="renderHandlerColumn" value="#{renderHandlerColumn != null ? renderHandlerColumn : propertyTypeController.displayHandler}" />
-        <ui:param name="renderDescriptionColumn" value="#{renderDescriptionColumn != null ? renderDescriptionColumn : propertyTypeController.displayDescription}" />
+        <ui:param name="propertyTypeSettingObject" value="#{propertyTypeController.settingObject}" />
+        <ui:param name="renderIdColumn" value="#{renderIdColumn != null ? renderIdColumn : propertyTypeSettingObject.displayId}" />
+        <ui:param name="renderCategoryColumn" value="#{renderCategoryColumn != null ? renderCategoryColumn : propertyTypeSettingObject.displayCategory}" />
+        <ui:param name="renderDefaultUnitsColumn" value="#{renderDefaultUnitsColumn != null ? renderDefaultUnitsColumn : propertyTypeSettingObject.displayDefaultUnits}" />
+        <ui:param name="renderDefaultValueColumn" value="#{renderDefaultValueColumn != null ? renderDefaultValueColumn : propertyTypeSettingObject.displayDefaultValue}" />
+        <ui:param name="renderHandlerColumn" value="#{renderHandlerColumn != null ? renderHandlerColumn : propertyTypeSettingObject.displayHandler}" />
+        <ui:param name="renderDescriptionColumn" value="#{renderDescriptionColumn != null ? renderDescriptionColumn : propertyTypeSettingObject.displayDescription}" />
+        
+        <ui:param name="renderAllowedDomainColumn" value="#{renderAllowedDomainColumn != null ? renderAllowedDomainColumn : false}" />
     </ui:define>
 
     <ui:define name="idColumn">        
         <p:column sortBy="#{propertyTypeObject.id}" headerText="Id"
                   filterBy="#{propertyTypeObject.id}" filterMatchMode="contains"
-                  filterValue="#{propertyTypeController.filterById}"
+                  filterValue="#{propertyTypeSettingObject.filterById}"
                   filterStyleClass="shortFilterBox"
                   rendered="#{renderIdColumn}">
             <h:outputText value="#{propertyTypeObject.id}"/>
@@ -27,9 +34,11 @@
 
     <ui:define name="nameColumn">
         <p:column sortBy="#{propertyTypeObject.name}" headerText="Name" 
+                  id="propertyTypeNameFilter"
                   filterBy="#{propertyTypeObject.name}" filterMatchMode="contains"
-                  filterValue="#{propertyTypeController.filterByName}"
-                  rendered="true">
+                  filterValue="#{propertyTypeSettingObject.filterByName}"
+                  rendered="true"
+                  exportFunction="#{propertyTypeObject.getName()}">
             <ui:insert name="nameValue">
                 <h:outputLink value="view.xhtml?id=#{propertyTypeObject.id}" title="View property type details">
                     <h:outputText value="#{propertyTypeObject.name}"/>
@@ -42,7 +51,7 @@
         <p:column sortBy="#{propertyTypeObject.propertyTypeCategory.name}" headerText="Category" 
                   filterBy="#{propertyTypeObject.propertyTypeCategory.name}" filterMatchMode="exact"
                   filterOptions="#{propertyTypeCategoryController.availableItemsForSelectOne}"
-                  filterValue="#{propertyTypeController.filterByCategory}"
+                  filterValue="#{propertyTypeSettingObject.filterByCategory}"
                   rendered="#{renderCategoryColumn}">
             <h:outputText value="#{propertyTypeObject.propertyTypeCategory.name}"/>
         </p:column>
@@ -51,7 +60,7 @@
     <ui:define name="defaultUnitsColumn">
         <p:column sortBy="#{propertyTypeObject.defaultUnits}" headerText="Default Units" 
                   filterBy="#{propertyTypeObject.defaultUnits}" filterMatchMode="contains"
-                  filterValue="#{propertyTypeController.filterByDefaultUnits}"
+                  filterValue="#{propertyTypeSettingObject.filterByDefaultUnits}"
                   rendered="#{renderDefaultUnitsColumn}">
             <h:outputText value="#{propertyTypeObject.defaultUnits}"/>
         </p:column>
@@ -60,7 +69,7 @@
     <ui:define name="defaultValueColumn">
         <p:column sortBy="#{propertyTypeObject.defaultValue}" headerText="Default Value" 
                   filterBy="#{propertyTypeObject.defaultValue}" filterMatchMode="contains"
-                  filterValue="#{propertyTypeController.filterByDefaultValue}"
+                  filterValue="#{propertyTypeSettingObject.filterByDefaultValue}"
                   rendered="#{renderDefaultValueColumn}">
             <h:outputText value="#{propertyTypeObject.defaultValue}"/>
         </p:column>
@@ -70,7 +79,7 @@
         <p:column sortBy="#{propertyTypeObject.propertyTypeHandler.name}" headerText="Handler" 
                   filterBy="#{propertyTypeObject.propertyTypeHandler.name}" filterMatchMode="exact"
                   filterOptions="#{propertyTypeHandlerController.availableItemsForSelectOne}"
-                  filterValue="#{propertyTypeController.filterByHandler}"
+                  filterValue="#{propertyTypeSettingObject.filterByHandler}"
                   rendered="#{renderHandlerColumn}">
             <h:outputText value="#{propertyTypeObject.propertyTypeHandler.name}"/>
         </p:column>
@@ -79,9 +88,31 @@
     <ui:define name="descriptionColumn">
         <p:column sortBy="#{propertyTypeObject.description}" headerText="Description" 
                   filterBy="#{propertyTypeObject.description}" filterMatchMode="contains"
-                  filterValue="#{propertyTypeController.filterByDescription}"
+                  filterValue="#{propertyTypeSettingObject.filterByDescription}"
                   rendered="#{renderDescriptionColumn}">
             <h:outputText value="#{propertyTypeObject.description}"/>
+        </p:column>
+    </ui:define>
+    
+    <ui:define name="promptDescriptionColumn">
+        <p:column headerText="Prompt Description"
+                  rendered="#{false}"
+                  sortBy="#{propertyTypeObject.promptDescription}"
+                  filterBy="#{propertyTypeObject.promptDescription}">
+            <h:outputText value="#{propertyTypeObject.promptDescription}" />
+        </p:column>
+    </ui:define>
+    
+    <ui:define name="allowedDomainColumn">
+        <p:column headerText="Allowed Domain"
+                  sortBy="#{propertyTypeObject.allowedDomainString}"
+                  filterBy="#{propertyTypeObject.allowedDomainString}"
+                  rendered="#{renderAllowedDomainColumn}"
+                  exportFunction="#{propertyTypeObject.getAllowedDomainString()}">
+            <ui:repeat value="#{propertyTypeObject.allowedDomainList}"
+                       var="allowedDomainObject">
+                <h:outputText value="#{allowedDomainObject.name}" /> <br/>                
+            </ui:repeat>
         </p:column>
     </ui:define>
 

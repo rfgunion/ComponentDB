@@ -1,14 +1,14 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.constants;
 
 public enum InventoryBillOfMaterialItemStates {
         placeholder("placeholder"),
         existingItem("existingItem"),
-        newItem("newItem");
+        newItem("newItem"),
+        unspecifiedOptional("unspecifiedOptional"); 
 
         private String value;
 

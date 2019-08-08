@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from sqlalchemy import and_
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -29,6 +35,17 @@ class UserInfoHandler(CdbDbEntityHandler):
             return dbUserInfo 
         except NoResultFound, ex:
             raise ObjectNotFound('User %s does not exist.' % (username))
+
+    def getUserInfoWithPasswordByUsername(self, session, username):
+        try:
+            self.logger.debug('Retrieving user %s (with password)' % username)
+            dbUserInfo = session.query(UserInfo).filter(UserInfo.username == username).one()
+            dbUserGroups = session.query(UserGroup).join(UserUserGroup).filter(
+                and_(UserUserGroup.user_id == dbUserInfo.id, UserUserGroup.user_group_id == UserGroup.id)).all()
+            dbUserInfo.userGroupList = dbUserGroups
+            return dbUserInfo
+        except NoResultFound, ex:
+            raise ObjectNotFound('Username %s does not exist.' % (username))
 
     def getUserInfos(self, session):
         self.logger.debug('Retrieving user info list')
@@ -60,16 +77,6 @@ class UserInfoHandler(CdbDbEntityHandler):
             dbUserInfo.userGroupList = dbUserGroups
             # Remove password
             del dbUserInfo.password
-            return dbUserInfo
-        except NoResultFound, ex:
-            raise ObjectNotFound('Username %s does not exist.' % (username))
-
-    def getUserInfoWithPasswordByUsername(self, session, username):
-        try:
-            self.logger.debug('Retrieving user %s (with password)' % username)
-            dbUserInfo = session.query(UserInfo).filter(UserInfo.username==username).one()
-            dbUserGroups = session.query(UserGroup).join(UserUserGroup).filter(and_(UserUserGroup.user_id==dbUserInfo.id, UserUserGroup.user_group_id==UserGroup.id)).all()
-            dbUserInfo.userGroupList = dbUserGroups
             return dbUserInfo
         except NoResultFound, ex:
             raise ObjectNotFound('Username %s does not exist.' % (username))

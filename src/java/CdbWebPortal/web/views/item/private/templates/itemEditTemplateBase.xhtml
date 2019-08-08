@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -36,6 +40,7 @@
                 <ui:param name="itemObject" value="#{entityController.current}"/>
                 <ui:param name="currentItemController" value="#{entityController}" />
                 <ui:param name="domainEntityObject" value="#{itemObject}" />
+                <ui:param name="currentObject" value="#{itemObject}" />
 
                 <ui:insert name="editPanelGrid"/>
 
@@ -46,20 +51,24 @@
                 <p/>
                 
                 <p:accordionPanel multiple="true" 
+                                  id="editPageAccordion"
                                   activeIndex="0,1,2,3,4,5,6,7,8,9,10" 
                                   rendered="#{itemObject != null}">
                     
                     <p:tab title="Log Entries"
+                           id="logEntriesEditPageAccordion"
                            rendered="#{entityController.entityDisplayItemLogs}">
                         <ui:insert name="itemLogs" />
                     </p:tab>
                     
                     <p:tab title="Properties"
+                           id="propertiesEditPageAccordion"
                            rendered="#{entityController.entityDisplayItemProperties}">
                         <ui:insert name="itemProperties" />
                     </p:tab>
 
                     <p:tab title="Sources"
+                           id="sourcesEditPageAccordion"
                            rendered="#{entityController.entityDisplayItemSources}">
                         <ui:insert name="itemSources" /> 
                     </p:tab> 
@@ -67,7 +76,8 @@
                     <ui:insert name="itemElements" />
                     
                     <p:tab title="#{entityController.itemsDerivedFromItemTitle}" 
-                           rendered="#{entityController.entityDisplayItemsDerivedFromItem}">
+                           id="derivedEditPageAccordion"
+                           rendered="#{entityController.renderDerivedFromItemList}">
                         <ui:insert name="itemsDerivedFromItem" />
                     </p:tab>
                     

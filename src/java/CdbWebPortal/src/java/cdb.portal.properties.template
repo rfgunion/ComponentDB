@@ -3,9 +3,12 @@
 # and open the template in the editor.
 cdb.portal.adminGroupList=CDB_ADMIN
 
-# 'USERNAME' string will be replaced by the actual username
-cdb.portal.ldapUrl=ldaps://phoebusldap.aps.anl.gov:636
-cdb.portal.ldapDnString=uid=USERNAME,ou=people,o=aps.anl.gov,dc=aps,dc=anl,dc=gov
+# '%s' string will be replaced by the actual username
+cdb.portal.ldapUrl=CDB_LDAP_AUTH_SERVER_URL
+cdb.portal.ldapDnString=CDB_LDAP_AUTH_DN_FORMAT
+cdb.portal.ldapLookupDn=CDB_LDAP_SERVICE_DN
+cdb.portal.ldapLookupBindDnPassword=CDB_LDAP_SERVICE_PASS
+cdb.portal.ldapLookupDnUsernameFilter=CDB_LDAP_LOOKUP_FILTER
 
 # Storage areas
 cdb.portal.storageDirectory=CDB_DATA_DIR
@@ -16,31 +19,6 @@ cdb.portal.thumbnailImageSize=32
 # HTTP link begin/end display length, e.g.: https://edp...12345.jpg
 cdb.portal.handler.http.linkDisplayLength=32
 
-# 'COLLECTION_ID' will be inserted
-cdb.portal.handler.edp.urlString=https://edp.aps.anl.gov/browse/index/collection_id/COLLECTION_ID
-
-# 'CONTENT_ID' will be inserted
-cdb.portal.handler.icms.urlString=https://icmsdocs.aps.anl.gov/docs/idcplg?IdcService=DISPLAY_URL&dDocName=CONTENT_ID
-
-# 'ORDER_ID' will be inserted
-cdb.portal.handler.amos.urlString=https://apps.anl.gov/webcompadapter/viewrpt.cwr?id=10211&apsuser=irisuser&apspassword=irisuser2a&apsauthtype=secEnterprise&cmd=EXPORT&EXPORT_FMT=U2FPDF%3A0&promptex-ORDER_NO=ORDER_ID
-
-# 'PO_ID' will be inserted
-cdb.portal.handler.paris.urlString=https://apps.inside.anl.gov/paris/req.jsp?reqNbr=PO_ID
-
 # CDB Web Service
 cdb.webService.url=http://localhost:10232/cdb
-
-# Traveler Web Service 
-traveler.webSerice.url=http://127.0.0.1:3443
-# Traveler Web Serivce basic auth credentials 
-traveler.webService.basicAuth.username=api_write
-traveler.webService.basicAuth.password=write
-# Traveler Web Application
-traveler.webApp.url=https://127.0.0.1:3001
-# 'FORM_ID' will be inserted 
-traveler.webApp.TemplatePath=/forms/FORM_ID/
-# 'TRAVELER_ID' will be inserted
-traveler.webApp.TravelerPath=/travelers/TRAVELER_ID/
-# 'TRAVELER_ID' will be inserted
-traveler.webApp.TravelerConfigPath=/travelers/TRAVELER_ID/config
+cdb.permanentContextRoot.url=http://localhost:8080/cdb

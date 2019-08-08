@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -18,9 +22,9 @@
             <ui:param name="cdbDomainEntityObject" value="#{itemListObject}"/>
         </ui:include>
         <ui:include src="../../../propertyValue/private/propertyValueDomainEntityListDataTableColumn.xhtml">
-            <ui:param name="propertyValueRendered" value="#{entityController.displayListDataModelScopePropertyTypeSelection}" />
+            <ui:param name="propertyValueRendered" value="#{entitySettingObject.displayListDataModelScopePropertyTypeSelection}" />
             <ui:param name="cdbDomainEntityObject" value="#{itemListObject}"/>
-            <ui:param name="displayModePropertyTypeId" value="#{entityController.displayListDataModelScopePropertyTypeId}" />
+            <ui:param name="displayModePropertyTypeId" value="#{entitySettingObject.displayListDataModelScopePropertyTypeId}" />
             <ui:param name="propertyTypeName" value="#{entityController.getDisplayPropertyTypeName(displayModePropertyTypeId)}" />
             <ui:param name="propertyTypeId" value="#{displayModePropertyTypeId}" />
             <ui:param name="propertyValueFilterable" value="#{entityController.displayListDataModelScopePropertyFilterable}" />

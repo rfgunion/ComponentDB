@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -45,8 +49,10 @@
                           showNavBar="false">
 
                     <ui:insert name="derivedFromItemWizardTab"/>
-
+                                        
                     <ui:insert name="basicInformationTab"/>
+                    
+                    <ui:insert name="enforcedPropertyTypesTab" />
 
                     <ui:insert name="classificationTab"/>
 
@@ -54,14 +60,16 @@
 
                     <ui:insert name="additionalCreateWizardTabs" />
 
-                    <ui:insert name="reviewItemTab"/>        
+                    <ui:insert name="reviewItemTab"/>
 
                 </p:wizard>
 
                 <p:outputPanel id="wizardButtonsOutputPanel">
                     <div style="float: left">
                         <p:commandButton value="Previous Step" 
-                                         onstart="PF('#{entityTypeName}ItemCreateWizardWidget').back();" 
+                                         onstart="PF('loadingDialog').show();
+                                                  PF('#{entityTypeName}ItemCreateWizardWidget').back();" 
+                                         oncomplete="PF('loadingDialog').hide();"
                                          icon="ui-icon-arrowthick-1-w"
                                          update="@form"
                                          rendered="#{!entityController.isCreateWizardOnFirstStep()}"/>
@@ -72,7 +80,10 @@
                             <ui:param name="saveButtonRendered" value="#{entityController.isCreateWizardOnLastStep()}" />
                         </ui:include>
                         <p:commandButton value="Next Step" 
-                                         onstart="PF('#{entityTypeName}ItemCreateWizardWidget').next();"
+                                         id="#{entityTypeName}createWizardNextStep"                                        
+                                         onstart="PF('loadingDialog').show();
+                                                  PF('#{entityTypeName}ItemCreateWizardWidget').next();"
+                                         oncomplete="PF('loadingDialog').hide();"
                                          icon="ui-icon-arrowthick-1-e"
                                          iconPos="right"
                                          update="@form"

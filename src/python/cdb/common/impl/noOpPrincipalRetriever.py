@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from cdb.common.constants import cdbRole
 from cdb.common.objects.authorizationPrincipal import AuthorizationPrincipal
 from cdb.common.utility.cryptUtility import CryptUtility

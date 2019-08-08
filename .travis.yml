@@ -1,0 +1,16 @@
+language: 
+  - java
+
+jdk:
+  - openjdk8
+
+install:
+  - sudo pip install pytest
+  - sudo pip install -r etc/python-pip-requirements.txt
+
+script: 
+  - cd tools/developer_tools/code_testing/CdbWebPortalTest
+  - mvn -q test
+  - cd ../../../..
+  - cd src/python
+  - py.test

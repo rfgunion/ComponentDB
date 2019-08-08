@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
@@ -8,7 +12,7 @@
     <ui:param name="entityTypeDisplayName" value="#{entityController.displayEntityTypeName}" />
     <ui:param name="viewMode" value="#{viewMode != null ? viewMode : 'rowExpansion'}" />
     <ui:param name="loadPropertyValues" value="#{loadPropertyValues != null ? loadPropertyValues : 
-                                                viewMode != 'rowExpansion' or entityController.loadRowExpansionPropertyValues}" />
+                                                viewMode != 'rowExpansion' or entitySettingObject.loadRowExpansionPropertyValues}" />
 
     <p:outputPanel styleClass="domainEntityRowExpansionDetails">
         <p:accordionPanel activeIndex="" multiple="true">

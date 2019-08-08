@@ -1,11 +1,11 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.controllers;
 
 import gov.anl.aps.cdb.common.utilities.ObjectUtility;
+import gov.anl.aps.cdb.portal.controllers.settings.SettingsBase;
 import gov.anl.aps.cdb.portal.model.db.beans.CdbEntityFacade;
 import gov.anl.aps.cdb.portal.model.db.entities.Domain;
 import gov.anl.aps.cdb.portal.model.db.entities.ItemTypeCategoryEntity;
@@ -13,7 +13,7 @@ import java.util.List;
 import javax.faces.model.DataModel;
 import javax.faces.model.ListDataModel;
 
-public abstract class ItemTypeCategoryController<EntityType extends ItemTypeCategoryEntity, FacadeType extends CdbEntityFacade<EntityType>> extends CdbEntityController<EntityType, FacadeType> {
+public abstract class ItemTypeCategoryController<EntityType extends ItemTypeCategoryEntity, FacadeType extends CdbEntityFacade<EntityType>, SettingObject extends SettingsBase> extends CdbEntityController<EntityType, FacadeType, SettingObject> {
 
     protected Domain currentViewDomain = null;
 

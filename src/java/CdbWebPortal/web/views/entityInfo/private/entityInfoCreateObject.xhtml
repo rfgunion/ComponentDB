@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -7,7 +11,10 @@
                 xmlns:p="http://primefaces.org/ui">
 
     <h:outputLabel for="ownerUser" value="Owner User" styleClass="entityDataLabel"/>
-    <p:selectOneMenu id="ownerUser" value="#{entityInfoObject.ownerUser}" styleClass="entityDataSelectOne">
+    <p:selectOneMenu id="ownerUser" 
+                     value="#{entityInfoObject.ownerUser}" 
+                     styleClass="entityDataSelectOne"
+                     converter="userInfoConverter">
         <f:selectItem itemLabel="Select" itemValue="#{null}"/>
         <f:selectItems var="ownerUser" value="#{userInfoController.availableItems}" itemLabel="#{ownerUser.fullNameForSelection}" itemValue="#{ownerUser}"/>
     </p:selectOneMenu>

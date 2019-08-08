@@ -1,18 +1,20 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import gov.anl.aps.cdb.common.exceptions.CdbException;
 import gov.anl.aps.cdb.common.utilities.StringUtility;
+import gov.anl.aps.cdb.portal.constants.EntityTypeName;
 import gov.anl.aps.cdb.portal.controllers.ItemController;
 import gov.anl.aps.cdb.portal.model.db.utilities.ItemElementUtility;
-import gov.anl.aps.cdb.portal.model.jsf.beans.SparePartsBean;
 import gov.anl.aps.cdb.portal.utilities.SearchResult;
-import gov.anl.aps.cdb.portal.utilities.SessionUtility;
-import gov.anl.aps.cdb.portal.view.objects.InventoryBillOfMaterialItem;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,16 +31,24 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.ManyToOne;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.NamedStoredProcedureQueries;
+import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import org.primefaces.model.TreeNode;
-import org.primefaces.model.menu.DefaultMenuModel;
 
 /**
  *
@@ -46,7 +56,8 @@ import org.primefaces.model.menu.DefaultMenuModel;
  */
 @Entity
 @Table(name = "item")
-@XmlRootElement
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "domain_id", discriminatorType = DiscriminatorType.INTEGER)
 @NamedQueries({
     @NamedQuery(name = "Item.findAll",
             query = "SELECT i FROM Item i"),
@@ -65,40 +76,59 @@ import org.primefaces.model.menu.DefaultMenuModel;
     @NamedQuery(name = "Item.findByQrId",
             query = "SELECT i FROM Item i WHERE i.qrId = :qrId"),
     @NamedQuery(name = "Item.findByDomainName",
-            query = "SELECT i FROM Item i WHERE i.domain.name = :domainName"),
+            query = "SELECT i FROM Item i WHERE i.domain.name = :domainName ORDER BY i.name ASC"),
     @NamedQuery(name = "Item.findByDomainNameAndProject",
-            query = "SELECT DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl WHERE i.domain.name = :domainName and ipl.name = :projectName"),
+            query = "SELECT DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl WHERE i.domain.name = :domainName and ipl.name = :projectName ORDER BY i.name ASC"),
+    @NamedQuery(name = "Item.findByDomainNameAndProjectExcludeEntityType",
+            query = "SELECT DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl LEFT JOIN i.entityTypeList etl WHERE i.domain.name = :domainName and ipl.name = :projectName AND (etl.name != :entityTypeName or etl.name is null) ORDER BY i.name ASC"),
     @NamedQuery(name = "Item.findByDomainNameWithNoParents",
             query = "SELECT i FROM Item i WHERE i.itemElementMemberList IS EMPTY and i.domain.name = :domainName"),
     @NamedQuery(name = "Item.findByDomainNameOrderByQrId",
             query = "SELECT i FROM Item i WHERE i.domain.name = :domainName ORDER BY i.qrId DESC"),
+    @NamedQuery(name = "Item.findByDomainNameOrderByDerivedFromItem",
+            query = "SELECT i FROM Item i WHERE i.domain.name = :domainName ORDER BY i.derivedFromItem DESC"),
     @NamedQuery(name = "Item.findByDomainNameAndProjectOrderByQrId",
             query = "SELECT DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl WHERE i.domain.name = :domainName and ipl.name = :projectName ORDER BY i.qrId DESC"),
+    @NamedQuery(name = "Item.findByDomainNameAndProjectOrderByDerivedFromItem",
+            query = "SELECT DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl WHERE i.domain.name = :domainName and ipl.name = :projectName ORDER BY i.derivedFromItem DESC"),
     @NamedQuery(name = "Item.findByDomainNameAndEntityType",
             query = "SELECT DISTINCT(i) FROM Item i JOIN i.entityTypeList etl WHERE i.domain.name = :domainName and etl.name = :entityTypeName"),
+    @NamedQuery(name = "Item.findByDomainNameAndExcludeEntityType",
+            query = "SELECT DISTINCT(i) FROM Item i LEFT JOIN i.entityTypeList etl WHERE i.domain.name = :domainName and (etl.name != :entityTypeName or etl.name is null) ORDER BY i.name ASC"),
     @NamedQuery(name = "Item.findByDomainNameOderByQrId",
             query = "SELECT DISTINCT(i) FROM Item i JOIN i.entityTypeList etl WHERE i.domain.name = :domainName and etl.name = :entityTypeName ORDER BY i.qrId DESC"),
     @NamedQuery(name = "Item.findByDomainAndDerivedEntityTypeOrderByQrId",
             query = "SELECT DISTINCT(i) FROM Item i JOIN i.derivedFromItem.entityTypeList etl WHERE i.domain.name = :domainName and etl.name = :entityTypeName ORDER BY i.qrId DESC"),
     @NamedQuery(name = "Item.findItemsWithPropertyType",
-            query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel JOIN fiel.propertyValueList pvl WHERE i.domain.name = :domainName AND fiel.name is NULL and fiel.derivedFromItemElement is NULL AND pvl.propertyType.id = :propertyTypeId "),
+            query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel JOIN fiel.propertyValueList pvl WHERE i.domain.name = :domainName AND fiel.name is NULL and fiel.derivedFromItemElement is NULL AND pvl.propertyType.id = :propertyTypeId ORDER BY i.name ASC"),
+    @NamedQuery(name = "Item.findItemsWithPropertyTypeExcludeEntityType",
+            query = "Select DISTINCT(i) FROM Item i LEFT JOIN i.entityTypeList etl JOIN i.fullItemElementList fiel JOIN fiel.propertyValueList pvl WHERE i.domain.name = :domainName AND fiel.name is NULL and fiel.derivedFromItemElement is NULL AND pvl.propertyType.id = :propertyTypeId AND (etl.name != :entityTypeName or etl.name is null) ORDER BY i.name ASC"),
     @NamedQuery(name = "Item.findItemsWithPropertyTypeAndProject",
-            query = "Select DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl JOIN i.fullItemElementList fiel JOIN fiel.propertyValueList pvl WHERE i.domain.name = :domainName AND fiel.name is NULL and fiel.derivedFromItemElement is NULL AND pvl.propertyType.id = :propertyTypeId AND ipl.name = :projectName"),
+            query = "Select DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl JOIN i.fullItemElementList fiel JOIN fiel.propertyValueList pvl WHERE i.domain.name = :domainName AND fiel.name is NULL and fiel.derivedFromItemElement is NULL AND pvl.propertyType.id = :propertyTypeId AND ipl.name = :projectName ORDER BY i.name ASC"),
+    @NamedQuery(name = "Item.findItemsWithPropertyTypeAndProjectExcludeEntityType",
+            query = "Select DISTINCT(i) FROM Item i JOIN i.itemProjectList ipl LEFT JOIN i.entityTypeList etl JOIN i.fullItemElementList fiel JOIN fiel.propertyValueList pvl WHERE i.domain.name = :domainName AND fiel.name is NULL and fiel.derivedFromItemElement is NULL AND pvl.propertyType.id = :propertyTypeId AND ipl.name = :projectName and (etl.name != :entityTypeName or etl.name is null) ORDER BY i.name ASC"),
     @NamedQuery(name = "Item.findItemsOwnedByUserId",
             query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel "
             + "WHERE i.domain.name = :domainName "
             + "AND fiel.name is NULL "
             + "AND fiel.derivedFromItemElement is NULL "
-            + "AND fiel.entityInfo.ownerUser.id = :ownerUserId"),
+            + "AND fiel.entityInfo.ownerUser.id = :ownerUserId"),    
     @NamedQuery(name = "Item.findItemsOwnedByUserGroupId",
             query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel "
             + "WHERE i.domain.name = :domainName "
             + "AND fiel.name is NULL "
             + "AND fiel.derivedFromItemElement is NULL "
-            + "AND fiel.entityInfo.ownerUserGroup.id = :ownerUserGroupId"),
+            + "AND fiel.entityInfo.ownerUserGroup.id = :ownerUserGroupId"),    
     @NamedQuery(name = "Item.findItemsInList",
             query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel "
             + "WHERE i.domain.name = :domainName "
+            + "AND fiel.derivedFromItemElement is NULL "
+            + "AND fiel.name is NULL "
+            + "AND fiel.listList = :list "),
+    @NamedQuery(name = "Item.findItemsInListExcludeEntityType",
+            query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel JOIN i.entityTypeList etl "
+            + "WHERE i.domain.name = :domainName "
+            + "AND (etl.name != :entityTypeName or etl.name is null) "
             + "AND fiel.derivedFromItemElement is NULL "
             + "AND fiel.name is NULL "
             + "AND fiel.listList = :list "),
@@ -108,16 +138,78 @@ import org.primefaces.model.menu.DefaultMenuModel;
             + "AND fiel.derivedFromItemElement is NULL "
             + "AND (fiel.entityInfo.ownerUserGroup.id = :ownerUserGroupId "
             + "OR ieList = :list)"
-            + "AND i.domain.name = :domainName"),
+            + "AND i.domain.name = :domainName"),    
     @NamedQuery(name = "Item.findItemsOwnedByUserIdOrInList",
             query = "Select DISTINCT(i) FROM Item i JOIN i.fullItemElementList fiel LEFT JOIN fiel.listList ieList "
             + "WHERE  fiel.name is NULL "
             + "AND fiel.derivedFromItemElement is NULL "
             + "AND (fiel.entityInfo.ownerUser.id = :ownerUserId "
             + "OR ieList = :list)"
-            + "AND i.domain.name = :domainName"),})
-public class Item extends CdbDomainEntity implements Serializable {
+            + "AND i.domain.name = :domainName")
+})
+@NamedStoredProcedureQueries({
+    @NamedStoredProcedureQuery(
+            name = "item.itemWithWritePermissionsForUser",
+            procedureName = "items_with_write_permission_for_user",
+            resultClasses = Item.class,
+            parameters = {
+                @StoredProcedureParameter(
+                        name = "user_id",
+                        mode = ParameterMode.IN,
+                        type = Integer.class
+                ),
+                @StoredProcedureParameter(
+                        name = "domain_id",
+                        mode = ParameterMode.IN,
+                        type = Integer.class
+                )
+            }
+    ),
+})
 
+@JsonIgnoreProperties(value = {
+    // Transient
+    "assemblyRootTreeNode",    
+    "itemTypeString",
+    "itemCategoryString",
+    "itemSourceString",
+    "itemProjectString",
+    "qrIdDisplay",
+    "qrIdFilter",
+    "itemCableConnectionsRelationshipList",
+    "itemAvaliableConnectorsList",
+    "editEntityTypeString",
+    "editItemProjectString",
+    "logList",
+    "itemElementDisplayList",
+    "itemElementDisplayListEmpty",
+    "itemElementRelationshipList",
+    "itemElementRelationshipList1",
+    "itemElementRelationshipList2",
+    "derivedFromItemList",
+    "entityTypeString",
+    "entityTypeDisplayList", 
+    "listDisplayDescription",
+    "primaryImageValue",
+    "availableItemTypes",
+    "lastKnownItemCategoryList",
+    "isItemTemplate",    
+    "selfElement",
+    "descriptionFromAPI"
+})
+@Schema(name="Item", 
+        subTypes= 
+        {
+            ItemDomainCatalog.class,
+            ItemDomainInventory.class,
+            ItemDomainMachineDesign.class,
+            ItemDomainCable.class,            
+            ItemDomainMAARC.class,
+            ItemDomainLocation.class
+        }
+)
+public class Item extends CdbDomainEntity implements Serializable {
+        
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -133,85 +225,94 @@ public class Item extends CdbDomainEntity implements Serializable {
     @Column(name = "item_identifier2")
     private String itemIdentifier2;
     @Column(name = "qr_id")
+    @Min(0) 
     private Integer qrId;
     @JoinTable(name = "item_entity_type", joinColumns = {
         @JoinColumn(name = "item_id", referencedColumnName = "id")}, inverseJoinColumns = {
         @JoinColumn(name = "entity_type_id", referencedColumnName = "id")})
-    @ManyToMany
+    @ManyToMany    
+    @JsonProperty("entityTypeList")
     private List<EntityType> entityTypeList;
     @JoinTable(name = "item_item_category", joinColumns = {
         @JoinColumn(name = "item_id", referencedColumnName = "id")}, inverseJoinColumns = {
         @JoinColumn(name = "item_category_id", referencedColumnName = "id")})
     @ManyToMany
+    @JsonProperty("itemCategoryList")
     private List<ItemCategory> itemCategoryList;
     @JoinTable(name = "item_item_type", joinColumns = {
         @JoinColumn(name = "item_id", referencedColumnName = "id")}, inverseJoinColumns = {
         @JoinColumn(name = "item_type_id", referencedColumnName = "id")})
     @ManyToMany
+    @JsonProperty("itemTypeList")
     private List<ItemType> itemTypeList;
     @JoinTable(name = "item_item_project", joinColumns = {
         @JoinColumn(name = "item_id", referencedColumnName = "id")}, inverseJoinColumns = {
         @JoinColumn(name = "item_project_id", referencedColumnName = "id")})
-    @ManyToMany
+    @ManyToMany    
+    @JsonProperty("itemProjectList")
     private List<ItemProject> itemProjectList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentItem")
+    @OrderBy("sortOrder ASC")        
     private List<ItemElement> fullItemElementList;
-    @OneToMany(mappedBy = "containedItem")
+    @OneToMany(mappedBy = "containedItem1")        
     private List<ItemElement> itemElementMemberList;
+    @OneToMany(mappedBy = "containedItem2")        
+    private List<ItemElement> itemElementMemberList2;
     @JoinColumn(name = "domain_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Domain domain;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "derivedFromItem")
-    private List<Item> derivedFromItemList;
+    @ManyToOne(optional = false)    
+    private Domain domain;    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "derivedFromItem")    
+    private List<Item> derivedFromItemList;    
     @JoinColumn(name = "derived_from_item_id", referencedColumnName = "id")
     @ManyToOne
     private Item derivedFromItem;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
-    private List<ItemConnector> itemConnectorList;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
-    private List<ItemSource> itemSourceList;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")        
+    private List<ItemConnector> itemConnectorList;    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")    
+    private List<ItemSource> itemSourceList;    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")    
     private List<ItemResource> itemResourceList;
 
+    // Item element representing self 
     private transient ItemElement selfItemElement = null;
+    
+    // Descriptors in string format
     private transient String itemTypeString = null;
     private transient String itemCategoryString = null;
     private transient String itemSourceString = null;
     private transient String itemProjectString = null;
     private transient String qrIdDisplay = null;
+    private transient String qrIdFilter = null; 
 
-    private transient String primaryImageValue = null;
+    private transient List<ItemElementRelationship> itemCableConnectionsRelationshipList;
+    private transient List<Connector> itemAvaliableConnectorsList; 
+    
+    private transient String entityTypeString = null;
 
-    private transient TreeNode locationTree = null;
-    private transient String locationDetails = null;
-    private transient Item location;
-    private transient String locationString;
-    private transient DefaultMenuModel locationMenuModel;
-    // Needed to determine whenever location was removed in edit process. 
-    private transient Boolean originalLocationLoaded = false;
+    private transient String primaryImageValue = null;   
 
     private transient boolean isCloned = false;
 
-    private transient List<ItemElement> itemElementDisplayList;
+    // List of item elements that should be shown to user. 
+    private transient List<ItemElement> itemElementDisplayList;  
 
-    private transient String entityTypeString = null;
-
-    private transient String listDisplayDescription = null;
-
-    private transient List<InventoryBillOfMaterialItem> inventoryDomainBillOfMaterialList = null;
-    private transient InventoryBillOfMaterialItem containedInBOM;
-
-    private transient Boolean sparePartIndicator = null;
-    private transient SparePartsBean sparePartsBean = null;
-    private final transient String SPARE_PARTS_BEAN_NAME = "sparePartsBean";
-
-    private transient ItemController itemDomainController = null;
-
+    // Description that is list friendly (shortened if needed). 
+    private transient String listDisplayDescription = null;               
+    
+    private transient ItemController itemDomainController = null; 
+    
     private transient TreeNode assemblyRootTreeNode = null;
-    private transient TreeNode itemElementAssemblyRootTreeNode = null;
-
+    
+    private transient List<ItemType> availableItemTypes = null;
+    private transient List<ItemCategory> lastKnownItemCategoryList = null;
+    
+    private transient Boolean isItemTemplate = null;       
+        
+    // API generation variables    
+    private transient String descriptionFromAPI;
+    
     public Item() {
-    }
+    }        
 
     public void init() {
         ItemElement selfElement = new ItemElement();
@@ -229,13 +330,18 @@ public class Item extends CdbDomainEntity implements Serializable {
 
         this.domain = domain;
     }
-
+    
+    // Override in sub domains 
+    public Item createInstance() {
+        return null; 
+    }
+              
     @Override
     public Item clone() throws CloneNotSupportedException {
-        Item clonedItem = new Item();
+        Item clonedItem = createInstance();
         clonedItem.isCloned = true;
 
-        clonedItem.setDomain(this.getDomain());
+        clonedItem.setDomain(this.getDomain());        
         clonedItem.entityTypeList = this.getEntityTypeList();
         clonedItem.setItemCategoryList(this.getItemCategoryList());
         clonedItem.setItemTypeList(this.getItemTypeList());
@@ -259,9 +365,7 @@ public class Item extends CdbDomainEntity implements Serializable {
         clonedItem.fullItemElementList.add(newSelfElement);
 
         clonedItem.setItemSourceList(null);
-        clonedItem.setQrId(null);
-        clonedItem.setLocationDetails(null);
-        clonedItem.setLocation(null);
+        clonedItem.setQrId(null);        
         clonedItem.setPropertyValueList(null);
         clonedItem.setLogList(null);
         clonedItem.setDerivedFromItemList(null);
@@ -271,17 +375,15 @@ public class Item extends CdbDomainEntity implements Serializable {
 
         return clonedItem;
     }
-
-    public ItemController getItemDomainController() {
-        if (itemDomainController == null) {
-            if (domain != null) {
-                String domainName = domain.getName();
-                itemDomainController = ItemController.findDomainController(domainName);
-            }
+    
+    @JsonIgnore
+    public ItemController getItemDomainController() {        
+        if (itemDomainController == null) {            
+            itemDomainController = ItemController.findDomainControllerForItem(this);            
         }
 
         return itemDomainController;
-    }
+    }       
 
     public Item(Integer id) {
         this.id = id;
@@ -340,6 +442,8 @@ public class Item extends CdbDomainEntity implements Serializable {
     }
 
     public void setQrId(Integer qrId) {
+        this.qrIdDisplay = null;
+        this.qrIdFilter = null; 
         this.qrId = qrId;
     }
 
@@ -362,12 +466,54 @@ public class Item extends CdbDomainEntity implements Serializable {
         return qrIdDisplay;
     }
 
+    public String getQrIdFilter() {
+        if (qrIdFilter == null) {
+            String dispQr = getQrIdDisplay();
+            qrIdFilter = dispQr + " " + qrId + " " + dispQr.replace(" ", ""); 
+        }
+        return qrIdFilter;
+    }
+
+    @Size(max = 256)
     public String getDescription() {
         return getSelfElement().getDescription();
     }
-
+    
     public void setDescription(String description) {
         this.getSelfElement().setDescription(description);
+    } 
+    
+    public String getDescriptionFromAPI() {
+        return descriptionFromAPI;
+    }
+
+    @JsonSetter("description")
+    public void setDescriptionFromApi(String descriptionTmp) {
+        this.descriptionFromAPI = descriptionTmp;
+    }
+        
+    public List<ItemElementRelationship> getItemElementRelationshipList() {
+        return getSelfElement().getItemElementRelationshipList();
+    }
+
+    public void setItemElementRelationshipList(List<ItemElementRelationship> itemElementRelationshipList) {
+        getSelfElement().setItemElementRelationshipList(itemElementRelationshipList);
+    }
+    
+    public List<ItemElementRelationship> getItemElementRelationshipList1() {
+        return getSelfElement().getItemElementRelationshipList1();
+    }
+
+    public void setItemElementRelationshipList1(List<ItemElementRelationship> itemElementRelationshipList1) {
+        getSelfElement().setItemElementRelationshipList1(itemElementRelationshipList1);
+    }
+    
+    public List<ItemElementRelationship> getItemElementRelationshipList2() {
+        return getSelfElement().getItemElementRelationshipList2();
+    }
+
+    public void setItemElementRelationshipList2(List<ItemElementRelationship> itemElementRelationshipList2) {
+        getSelfElement().setItemElementRelationshipList2(itemElementRelationshipList2);
     }
 
     /**
@@ -428,14 +574,15 @@ public class Item extends CdbDomainEntity implements Serializable {
             entityTypeString = "";
             List<EntityType> entityTypeDisplayList = getEntityTypeDisplayList();
             if (entityTypeDisplayList != null) {
-                for (EntityType entityType : entityTypeDisplayList) {
-                    if (entityTypeString.length() > 0) {
+                for (int i = 0; i < entityTypeDisplayList.size(); i++) {
+                    EntityType entityType = entityTypeDisplayList.get(i); 
+                    boolean lastIdx = i == entityTypeDisplayList.size() -1; 
+                    if (entityTypeString.length() > 0 && lastIdx) {
                         entityTypeString += " ";
                     }
                     entityTypeString += entityType.getName();
                 }
-            }
-            entityTypeString = entityTypeString.replaceAll(" ", " | ");
+            }            
         }
 
         return entityTypeString;
@@ -466,6 +613,11 @@ public class Item extends CdbDomainEntity implements Serializable {
 
         entityTypeString = null;
         this.entityTypeList = entityTypeList;
+    }
+    
+    @JsonSetter("entityTypeList")
+    public void setEntityTypeListFromApi(List<EntityType> entityTypeList) {
+        this.entityTypeList = entityTypeList; 
     }
 
     @XmlTransient
@@ -506,7 +658,7 @@ public class Item extends CdbDomainEntity implements Serializable {
         this.itemTypeList = itemTypeList;
     }
 
-    @XmlTransient
+    @XmlTransient    
     public List<ItemProject> getItemProjectList() {
         return itemProjectList;
     }
@@ -578,25 +730,6 @@ public class Item extends CdbDomainEntity implements Serializable {
     public void resetItemElementDisplayList() {
         itemElementDisplayList = null;
     }
-    
-    public TreeNode getItemElementAssemblyRootTreeNode() throws CdbException {
-        if (itemElementAssemblyRootTreeNode == null) {
-            if (getItemElementDisplayList().size() > 0) {
-                itemElementAssemblyRootTreeNode = ItemElementUtility.createItemElementRoot(this); 
-            }
-        }
-        return itemElementAssemblyRootTreeNode;
-    }
-
-    public TreeNode getAssemblyRootTreeNode() throws CdbException {
-        if (assemblyRootTreeNode == null) {
-            if (getItemElementDisplayList().size() > 0) {
-                assemblyRootTreeNode = ItemElementUtility.createItemRoot(this);
-
-            }
-        }
-        return assemblyRootTreeNode;
-    }
 
     public void resetSelfElement() {
         selfItemElement = null;
@@ -635,6 +768,15 @@ public class Item extends CdbDomainEntity implements Serializable {
     }
 
     @XmlTransient
+    public List<ItemElement> getItemElementMemberList2() {
+        return itemElementMemberList2;
+    }
+
+    public void setItemElementMemberList2(List<ItemElement> itemElementMemberList2) {
+        this.itemElementMemberList2 = itemElementMemberList2;
+    }
+
+    @XmlTransient
     public List<Item> getDerivedFromItemList() {
         return derivedFromItemList;
     }
@@ -658,22 +800,6 @@ public class Item extends CdbDomainEntity implements Serializable {
 
     public void setDerivedFromItem(Item derivedFromItem) {
         this.derivedFromItem = derivedFromItem;
-    }
-
-    public List<InventoryBillOfMaterialItem> getInventoryDomainBillOfMaterialList() {
-        return inventoryDomainBillOfMaterialList;
-    }
-
-    public void setInventoryDomainBillOfMaterialList(List<InventoryBillOfMaterialItem> inventoryDomainBillOfMaterialList) {
-        this.inventoryDomainBillOfMaterialList = inventoryDomainBillOfMaterialList;
-    }
-
-    public InventoryBillOfMaterialItem getContainedInBOM() {
-        return containedInBOM;
-    }
-
-    public void setContainedInBOM(InventoryBillOfMaterialItem containedInBOM) {
-        this.containedInBOM = containedInBOM;
     }
 
     @Override
@@ -714,52 +840,20 @@ public class Item extends CdbDomainEntity implements Serializable {
         return itemSourceString;
     }
 
-    public TreeNode getLocationTree() {
-        return locationTree;
+    public List<ItemType> getAvailableItemTypes() {
+        return availableItemTypes;
     }
 
-    public void setLocationTree(TreeNode locationTree) {
-        this.locationTree = locationTree;
+    public void setAvailableItemTypes(List<ItemType> availableItemTypes) {
+        this.availableItemTypes = availableItemTypes;
     }
 
-    public DefaultMenuModel getLocationMenuModel() {
-        return locationMenuModel;
+    public List<ItemCategory> getLastKnownItemCategoryList() {
+        return lastKnownItemCategoryList;
     }
 
-    public void setLocationMenuModel(DefaultMenuModel locationMenuModel) {
-        this.locationMenuModel = locationMenuModel;
-    }
-
-    public Boolean getOriginalLocationLoaded() {
-        return originalLocationLoaded;
-    }
-
-    public void setOriginalLocationLoaded(Boolean originalLocationLoaded) {
-        this.originalLocationLoaded = originalLocationLoaded;
-    }
-
-    public String getLocationDetails() {
-        return locationDetails;
-    }
-
-    public void setLocationDetails(String locationDetails) {
-        this.locationDetails = locationDetails;
-    }
-
-    public Item getLocation() {
-        return location;
-    }
-
-    public void setLocation(Item location) {
-        this.location = location;
-    }
-
-    public String getLocationString() {
-        return locationString;
-    }
-
-    public void setLocationString(String locationString) {
-        this.locationString = locationString;
+    public void setLastKnownItemCategoryList(List<ItemCategory> lastKnownItemCategoryList) {
+        this.lastKnownItemCategoryList = lastKnownItemCategoryList;
     }
 
     @XmlTransient
@@ -802,8 +896,14 @@ public class Item extends CdbDomainEntity implements Serializable {
         }
         return propertyValueInternalList;
     }
+    
+    @Override
+    public void addPropertyValueToPropertyValueList(PropertyValue propertyValue) {
+        getSelfElement().addPropertyValueToPropertyValueList(propertyValue);
+    }
 
     @Override
+    @JsonIgnore
     public List<PropertyValue> getPropertyValueList() {
         return this.getSelfElement().getPropertyValueList();
     }
@@ -911,27 +1011,13 @@ public class Item extends CdbDomainEntity implements Serializable {
     public void setIsCloned(boolean isCloned) {
         this.isCloned = isCloned;
     }
-
-    public Boolean getSparePartIndicator() {
-        if (sparePartIndicator == null) {
-            sparePartIndicator = getSparePartsBean().getSparePartsIndication(this);
+    
+    public String getPrimaryImageForItem() {
+        PropertyValue primaryImagePropertyValueForItem = ItemController.getPrimaryImagePropertyValueForItem(this);
+        if (primaryImagePropertyValueForItem != null) {
+            return primaryImagePropertyValueForItem.getValue();
         }
-        return sparePartIndicator;
-    }
-
-    public void setSparePartIndicator(Boolean sparePartIndicator) {
-        this.sparePartIndicator = sparePartIndicator;
-    }
-
-    public void updateSparePartsIndication() {
-        getSparePartsBean().setSparePartsIndication(this);
-    }
-
-    public SparePartsBean getSparePartsBean() {
-        if (sparePartsBean == null) {
-            sparePartsBean = (SparePartsBean) SessionUtility.findBean(SPARE_PARTS_BEAN_NAME);
-        }
-        return sparePartsBean;
+        return null; 
     }
 
     @Override
@@ -980,8 +1066,10 @@ public class Item extends CdbDomainEntity implements Serializable {
             return true;
         }
 
-        if (other.getId().equals(id)) {
-            return true;
+        if (other.getId() != null) {
+            if (other.getId().equals(id)) {
+                return true;
+            }
         }
 
         return (Objects.equals(other.getItemIdentifier1(), itemIdentifier1)
@@ -991,11 +1079,48 @@ public class Item extends CdbDomainEntity implements Serializable {
                 && Objects.equals(other.getName(), name));
     }
 
+    public void setItemCableConnectionsRelationshipList(List<ItemElementRelationship> itemCableConnectionsRelationshipList) {
+        this.itemCableConnectionsRelationshipList = itemCableConnectionsRelationshipList;
+    }
+
+    public List<ItemElementRelationship> getItemCableConnectionsRelationshipList() {
+        return itemCableConnectionsRelationshipList;
+    }
+
+    public List<Connector> getItemAvaliableConnectorsList() {
+        return itemAvaliableConnectorsList;
+    }
+
+    public void setItemAvaliableConnectorsList(List<Connector> itemAvaliableConnectorsList) {
+        this.itemAvaliableConnectorsList = itemAvaliableConnectorsList;
+    }
+    
+    public Boolean getIsItemTemplate() {
+        if (isItemTemplate == null) {
+            isItemTemplate = isItemTemplate(this);
+        }
+        return isItemTemplate;
+    }
+
+    public static boolean isItemTemplate(Item item) {
+        if (item != null) {
+            List<EntityType> entityTypeList = item.getEntityTypeList();
+            if (entityTypeList != null) {
+                for (EntityType entityType : entityTypeList) {
+                    if (entityType.getName().equals(EntityTypeName.template.getValue())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         if (getName() != null && getName().isEmpty() == false) {
             if (derivedFromItem != null) {
-                return derivedFromItem.toString() + " - " + getName();
+                return derivedFromItem.toString() + " - [" + getName() + "]";
             }
             return getName();
         } else if (getDerivedFromItem() != null && getDerivedFromItem().getName() != null) {
@@ -1006,5 +1131,15 @@ public class Item extends CdbDomainEntity implements Serializable {
             return "New Item";
         }
     }
+    
+    public TreeNode getAssemblyRootTreeNode() throws CdbException {
+        if (assemblyRootTreeNode == null) {
+            if (getItemElementDisplayList().size() > 0) {
+                assemblyRootTreeNode = ItemElementUtility.createItemRoot(this);
+
+            }
+        }
+        return assemblyRootTreeNode;
+    }      
 
 }

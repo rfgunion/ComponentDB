@@ -1,12 +1,11 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.beans;
 
 import gov.anl.aps.cdb.portal.model.db.entities.EntityType;
-import java.util.List;
+import gov.anl.aps.cdb.portal.utilities.SessionUtility;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -40,6 +39,10 @@ public class EntityTypeFacade extends CdbEntityFacade<EntityType> {
             
         }
         return null;
+    }
+    
+    public static EntityTypeFacade getInstance() {
+        return (EntityTypeFacade) SessionUtility.findFacade(EntityTypeFacade.class.getSimpleName()); 
     }
     
 }

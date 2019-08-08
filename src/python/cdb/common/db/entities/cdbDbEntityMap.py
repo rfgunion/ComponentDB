@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from cdb.common.db.entities.allowedPropertyValue import AllowedPropertyValue
 from cdb.common.db.entities.entityInfo import EntityInfo
 from cdb.common.db.entities.propertyTypeCategory import PropertyTypeCategory 
@@ -53,6 +59,8 @@ CDB_DB_ENTITY_MAP = {
     'attachment' : (Attachment, {} ),
     'log' : (Log, {
         'logTopic' :  { 'parentEntity' : LogTopic, 'lazy' : False },
+        'itemElementLogList' : { 'parentEntity' : ItemElementLog, 'lazy' : True },
+        'systemLog' : { 'parentEntity' : SystemLog, 'lazy' : True }
     }),
     'log_topic' : (LogTopic, {} ),
     'log_level' : (LogLevel, {} ),
@@ -72,20 +80,19 @@ CDB_DB_ENTITY_MAP = {
     'property_type_category' : (PropertyTypeCategory, {}),
     'property_type_handler' : (PropertyTypeHandler, {}),
     'property_type' : (PropertyType, {
-        'allowedPropertyValueList' : { 'parentEntity' : AllowedPropertyValue, 'lazy' : False },
         'propertyTypeCategory' : { 'parentEntity' : PropertyTypeCategory, 'lazy' : False }, 
         'propertyTypeHandler' : { 'parentEntity' : PropertyTypeHandler, 'lazy' : False }, 
     }),
     'property_value' : (PropertyValue, {
         'propertyType' : { 'parentEntity' : PropertyType, 'lazy' : False }, 
         'enteredByUserInfo' : { 'parentEntity' : UserInfo, 'lazy' : False },
-        'propertyValueHistory' : { 'parentEntity' : PropertyValueHistory, 'lazy' : False },
-        'propertyMetadata' : { 'parentEntity' : PropertyMetadata, 'lazy' : False },
+        'propertyValueHistory': {'parentEntity' : PropertyValueHistory, 'lazy': False },
     }),
     'property_value_history' : (PropertyValueHistory, {
-        'propertyValue' : { 'parentEntity' : PropertyValue, 'lazy' : False }, 
     }),
-    'property_metadata' : (PropertyMetadata, {}),
+    'property_metadata' : (PropertyMetadata, {
+        'propertyValue' : { 'parentEntity' : PropertyValue, 'lazy' : False },
+    }),
     'user_info' : (UserInfo, {}), 
     'user_group' : (UserGroup, {}),
     'user_user_group' : (UserUserGroup, {
@@ -136,7 +143,8 @@ CDB_DB_ENTITY_MAP = {
     }),
     'item_element' : ( ItemElement, {
         'parentItem' : { 'parentEntity' : Item, 'lazy' : False, 'foreignKeyColumns' : ['parent_item_id'] },
-        'containedItem' : { 'parentEntity' : Item, 'lazy' : False, 'foreignKeyColumns' : ['contained_item_id'] },
+        'containedItem' : { 'parentEntity' : Item, 'lazy' : False, 'foreignKeyColumns' : ['contained_item_id1'] },
+        'containedItem2' : { 'parentEntity' : Item, 'lazy' : False, 'foreignKeyColumns' : ['contained_item_id2'] },
         'entityInfo' : { 'parentEntity' : EntityInfo, 'lazy' : False },
     }),
     'item_element_log' : ( ItemElementLog, {

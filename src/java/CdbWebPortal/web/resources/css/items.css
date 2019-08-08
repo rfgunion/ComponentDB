@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
+ */
 @import url("portal.css");
 
 .defaultBackground {
@@ -42,4 +46,3 @@ h1 {
     border: 0px; 
     background: #ecffe6; 
 }
-

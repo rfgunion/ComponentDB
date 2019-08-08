@@ -1,10 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -53,6 +53,7 @@ public class AllowedPropertyValue extends CdbEntity implements Serializable {
     private Float sortOrder;
     @JoinColumn(name = "property_type_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonIgnore
     private PropertyType propertyType;
 
     public AllowedPropertyValue() {
@@ -95,6 +96,9 @@ public class AllowedPropertyValue extends CdbEntity implements Serializable {
     }
 
     public Float getSortOrder() {
+        if (sortOrder == null) {
+            return new Float(0.0); 
+        }
         return sortOrder;
     }
 

@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 #
 # Implementation for user group controller.
 #
@@ -21,5 +27,8 @@ class UserGroupControllerImpl(CdbObjectManager):
 
     def getUserGroups(self):
         return self.userDbApi.getUserGroups()
+
+    def getUserGroupByName(self, groupName):
+        return self.userDbApi.getUserGroupByName(groupName)
 
 

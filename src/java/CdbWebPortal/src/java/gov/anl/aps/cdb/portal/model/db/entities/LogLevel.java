@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
@@ -33,7 +32,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "LogLevel.findById", query = "SELECT l FROM LogLevel l WHERE l.id = :id"),
     @NamedQuery(name = "LogLevel.findByName", query = "SELECT l FROM LogLevel l WHERE l.name = :name"),
     @NamedQuery(name = "LogLevel.findByDescription", query = "SELECT l FROM LogLevel l WHERE l.description = :description")})
-public class LogLevel implements Serializable {
+public class LogLevel extends CdbEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

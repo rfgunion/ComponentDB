@@ -1,16 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,6 +41,21 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "EntityInfo.findByCreatedOnDateTime", query = "SELECT e FROM EntityInfo e WHERE e.createdOnDateTime = :createdOnDateTime"),
     @NamedQuery(name = "EntityInfo.findByLastModifiedOnDateTime", query = "SELECT e FROM EntityInfo e WHERE e.lastModifiedOnDateTime = :lastModifiedOnDateTime"),
     @NamedQuery(name = "EntityInfo.findByObsoletedOnDateTime", query = "SELECT e FROM EntityInfo e WHERE e.obsoletedOnDateTime = :obsoletedOnDateTime")})
+@JsonIgnoreProperties(value = {
+    "itemElement",
+    "list",
+    "ownerUser",
+    "ownerUserGroup",
+    "createdByUser",
+    "obsoletedByUser",
+    "lastModifiedByUser",
+    
+    "ownerUserDisplayName",
+    "createdByDisplayName",
+    "lastModifiedByDisplayName",
+    "obsoletedByDisplayName",
+    "ownerGroupDisplayName"
+})
 public class EntityInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -61,7 +78,7 @@ public class EntityInfo implements Serializable {
     @Column(name = "obsoleted_on_date_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date obsoletedOnDateTime;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "entityInfo")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "entityInfo", fetch = FetchType.LAZY)
     private ItemElement itemElement;
     @JoinColumn(name = "owner_user_id", referencedColumnName = "id")
     @ManyToOne
@@ -78,7 +95,7 @@ public class EntityInfo implements Serializable {
     @JoinColumn(name = "obsoleted_by_user_id", referencedColumnName = "id")
     @ManyToOne
     private UserInfo obsoletedByUser;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "entityInfo")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "entityInfo", fetch = FetchType.LAZY)
     private ListTbl list;
 
     public EntityInfo() {
@@ -110,6 +127,7 @@ public class EntityInfo implements Serializable {
         this.isGroupWriteable = isGroupWriteable;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getCreatedOnDateTime() {
         return createdOnDateTime;
     }
@@ -118,6 +136,7 @@ public class EntityInfo implements Serializable {
         this.createdOnDateTime = createdOnDateTime;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getLastModifiedOnDateTime() {
         return lastModifiedOnDateTime;
     }
@@ -126,6 +145,7 @@ public class EntityInfo implements Serializable {
         this.lastModifiedOnDateTime = lastModifiedOnDateTime;
     }
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getObsoletedOnDateTime() {
         return obsoletedOnDateTime;
     }
@@ -221,6 +241,41 @@ public class EntityInfo implements Serializable {
 
     public void setList(ListTbl list) {
         this.list = list;
+    }
+    
+    public String getOwnerUsername() {
+        if (ownerUser != null) {
+            return ownerUser.getUsername();
+        }
+        return null; 
+    }
+    
+    public String getOwnerUserGroupName() {
+        if (ownerUserGroup != null) {
+            return ownerUserGroup.getName();
+        }
+        return null; 
+    }
+    
+    public String getCreatedByUsername() {
+        if (createdByUser != null) {
+            return createdByUser.getUsername();
+        }
+        return null; 
+    }
+    
+    public String getObsoletedByUsername() {
+        if (obsoletedByUser != null) {
+            return obsoletedByUser.getUsername();
+        }
+        return null;
+    }
+    
+    public String getLastModifiedByUsername() {
+        if (lastModifiedByUser != null) {
+            return lastModifiedByUser.getUsername();
+        }
+        return null; 
     }
 
     @Override

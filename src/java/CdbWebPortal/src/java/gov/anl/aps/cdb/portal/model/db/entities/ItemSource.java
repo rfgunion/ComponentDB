@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
@@ -128,6 +127,10 @@ public class ItemSource extends CdbEntity implements Serializable {
     public void setIsVendor(boolean isVendor) {
         this.isVendor = isVendor;
     }
+    
+    public String getIsVendorString() {
+        return String.valueOf(isVendor); 
+    }    
 
     public boolean getIsManufacturer() {
         return isManufacturer;
@@ -135,6 +138,10 @@ public class ItemSource extends CdbEntity implements Serializable {
 
     public void setIsManufacturer(boolean isManufacturer) {
         this.isManufacturer = isManufacturer;
+    }
+    
+    public String getIsManufacturerString() {
+        return String.valueOf(isManufacturer); 
     }
 
     public String getContactInfo() {

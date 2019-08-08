@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+"""
+
+
 from sqlalchemy import and_
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -12,6 +18,9 @@ from cdb.common.db.impl.cdbDbEntityHandler import CdbDbEntityHandler
 
 
 class RelationshipTypeHandler(CdbDbEntityHandler):
+
+    LOCATION_RELATIONSHIP_TYPE_NAME = "Location"
+    MAARC_CONNECTION_RELATIONSHIP_TYPE_NAME = "MAARC Connection"
 
     def __init__(self):
         CdbDbEntityHandler.__init__(self)

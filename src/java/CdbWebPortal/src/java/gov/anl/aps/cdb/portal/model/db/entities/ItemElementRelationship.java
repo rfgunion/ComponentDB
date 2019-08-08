@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
  */
 package gov.anl.aps.cdb.portal.model.db.entities;
 
@@ -47,9 +46,17 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "ItemElementRelationship.findByRelationshipTypeNameAndFirstElementId", 
             query = "SELECT i FROM ItemElementRelationship i "
                     + "WHERE (i.firstItemElement.id = :itemElementId) "
+                    + "AND i.relationshipType.name = :relationshipTypeName"),
+    @NamedQuery(name = "ItemElementRelationship.findRelationshipsByTypeAndItemDomain",
+            query = "SELECT i FROM ItemElementRelationship i "
+                    + "JOIN i.firstItemElement ie "
+                    + "JOIN ie.parentItem it "
+                    + "JOIN it.domain d "
+                    + "WHERE ie.derivedFromItemElement IS NULL "
+                    + "AND ie.name IS NULL AND d.name = :domainName "
                     + "AND i.relationshipType.name = :relationshipTypeName")
 })
-public class ItemElementRelationship implements Serializable {
+public class ItemElementRelationship extends CdbEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

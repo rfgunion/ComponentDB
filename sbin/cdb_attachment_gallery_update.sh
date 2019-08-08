@@ -1,11 +1,15 @@
-#!/bin/sh
+#!/bin/bash
+
+# Copyright (c) UChicago Argonne, LLC. All rights reserved.
+# See LICENSE file.
+
 
 #
 # Script used for updating scaled portal images (used for thumbnails and gallery) for images and viewable documents.
 #
 # Usage:
 #
-# $0 [CDB_DB_NAME | CDB_DATA_DIR]
+# $0 [CDB_DB_NAME | CDB_DATA_DIR | ATTACHMENT_FILE_PATH]
 #
 
 MY_DIR=`dirname $0` && cd $MY_DIR && MY_DIR=`pwd`
@@ -14,12 +18,12 @@ if [ -z "${CDB_ROOT_DIR}" ]; then
 fi
 CDB_ENV_FILE=${CDB_ROOT_DIR}/setup.sh
 if [ ! -f ${CDB_ENV_FILE} ]; then
-    >&2 echo "Environment file ${CDB_ENV_FILE} does not exist." 
+    >&2 echo "Environment file ${CDB_ENV_FILE} does not exist."
     exit 1
 fi
 . ${CDB_ENV_FILE} > /dev/null
 
-# Unset custom varaibles that need to still be set from ENV_FILE. 
+# Unset custom varaibles that need to still be set from ENV_FILE.
 unset CDB_DB_NAME
 unset CDB_DATA_DIR
 
@@ -27,22 +31,24 @@ unset CDB_DATA_DIR
 if [ ! -z "$1" ]; then
     if [ -d "$1" ]; then
 	CDB_DATA_DIR=$1
+    elif [ -f "$1" ]; then
+	ATTACHMENT_FILE=$1
     else
     	CDB_DB_NAME=$1
     fi
-else 
+else
     >&2 echo "No databse or data directory provided, please provide the database or data directory and try again"
-    echo "USAGE: $0 [CDB_DB_NAME | CDB_DATA_DIR]"
+    echo "USAGE: $0 [CDB_DB_NAME | CDB_DATA_DIR | ATTACHMENT_FILE]"
     exit 1
 fi
 
-if [ -z $CDB_DATA_DIR ]; then 
+if [ -z $CDB_DATA_DIR ] && [ -z $ATTACHMENT_FILE ]; then
     echo "Using DB name: $CDB_DB_NAME"
 
     # Look for deployment file in etc directory, and use it to override
     # default entries
 
-    deployConfigFile=$CDB_ROOT_DIR/etc/${CDB_DB_NAME}.deploy.conf
+    deployConfigFile=$CDB_INSTALL_DIR/etc/${CDB_DB_NAME}.deploy.conf
     if [ -f $deployConfigFile ]; then
 	echo "Using deployment config file: $deployConfigFile"
 	. $deployConfigFile
@@ -60,19 +66,25 @@ fi
 CDB_BUILD_WEB_INF_DIR=$CDB_ROOT_DIR/src/java/CdbWebPortal/build/web/WEB-INF
 
 if [ ! -d "$CDB_BUILD_WEB_INF_DIR" ]; then
-    >&2 echo "Build directory: $CDB_BUILD_WEB_INF_DIR was not found, please build the portal and try again" 
+    >&2 echo "Build directory: $CDB_BUILD_WEB_INF_DIR was not found, please build the portal and try again"
     exit 1
 fi
 
-echo "Using data directory: $CDB_DATA_DIR" 
-echo 
-read -p "Would you like to backup the data directory before continuing? [Y/n] " backupDataDir 
-if [ -z $backupDataDir ]; then
-    backupDataDir="y"
+if [ ! -z $CDB_DATA_DIR ]; then
+    echo "Using data directory: $CDB_DATA_DIR"
+    echo
+    read -p "Would you like to backup the data directory before continuing? [Y/n] " backupDataDir
+    if [ -z $backupDataDir ]; then
+        backupDataDir="y"
+    fi
+else
+    echo "Using attachment file: $ATTACHMENT_FILE"
+    echo
+    backupDataDir="n"
 fi
 
 if [ $backupDataDir == "y" -o $backupDataDir == "Y" ]; then
-    if [ -z $CDB_DB_NAME ]; then 
+    if [ -z $CDB_DB_NAME ]; then
 	read -p "Please enter the deployment database for the entered data directory [cdb]: " CDB_DB_NAME
 	if [ -z $CDB_DB_NAME ]; then
 	    CDB_DB_NAME="cdb"
@@ -88,7 +100,7 @@ if [ $backupDataDir == "y" -o $backupDataDir == "Y" ]; then
     fi
 
     if [ $proceedBackup == "y" -o $proceedBackup == "Y" ]; then
-	echo "Backing up" 
+	echo "Backing up"
 
 	if [ ! -d $CDB_BACKUP_DATA_DIR ]; then
 	    echo "Creating Directory: $CDB_BACKUP_DATA_DIR"
@@ -101,12 +113,20 @@ if [ $backupDataDir == "y" -o $backupDataDir == "Y" ]; then
 	echo "Executing: $backupCommand"
 	eval $backupCommand
     else
-	echo "Exiting script" 
+	echo "Exiting script"
 	exit
-    fi  
+    fi
 fi
 
-javaCmd="java -cp $CDB_BUILD_WEB_INF_DIR/classes:$CDB_BUILD_WEB_INF_DIR/lib/* gov.anl.aps.cdb.portal.utilities.GalleryUtility $CDB_DATA_DIR"
+if [ -z $CDB_DATA_DIR ]; then
+    TYPE="document"
+    DATA=$ATTACHMENT_FILE
+else
+    TYPE="directory"
+    DATA="$CDB_DATA_DIR"
+fi
+
+javaCmd="java -cp $CDB_BUILD_WEB_INF_DIR/classes:$CDB_BUILD_WEB_INF_DIR/lib/* gov.anl.aps.cdb.portal.utilities.GalleryUtility $TYPE $DATA"
 
 echo "Executing: $javaCmd"
 eval $javaCmd

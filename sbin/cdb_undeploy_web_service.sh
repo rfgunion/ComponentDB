@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+# Copyright (c) UChicago Argonne, LLC. All rights reserved.
+# See LICENSE file.
+
 
 #
 # Script used for undeploying CDB web service
@@ -15,7 +19,7 @@ if [ -z "${CDB_ROOT_DIR}" ]; then
 fi
 CDB_ENV_FILE=${CDB_ROOT_DIR}/setup.sh
 if [ ! -f ${CDB_ENV_FILE} ]; then
-    echo "Environment file ${CDB_ENV_FILE} does not exist." 
+    echo "Environment file ${CDB_ENV_FILE} does not exist."
     exit 2
 fi
 . ${CDB_ENV_FILE} > /dev/null
@@ -27,9 +31,11 @@ if [ ! -z "$1" ]; then
 fi
 echo "Using DB name: $CDB_DB_NAME"
 
+CDB_INSTALL_DIR=${CDB_INSTALL_DIR:=$CDB_ROOT_DIR/..}
+
 # Look for deployment file in etc directory, and use it to override
 # default entries
-deployConfigFile=$CDB_ROOT_DIR/etc/${CDB_DB_NAME}.deploy.conf
+deployConfigFile=$CDB_INSTALL_DIR/etc/${CDB_DB_NAME}.deploy.conf
 if [ -f $deployConfigFile ]; then
     echo "Using deployment config file: $deployConfigFile"
     . $deployConfigFile
@@ -40,7 +46,6 @@ fi
 CDB_HOST_ARCH=`uname | tr [A-Z] [a-z]`-`uname -m`
 CDB_CONTEXT_ROOT=${CDB_CONTEXT_ROOT:=cdb}
 CDB_DATA_DIR=${CDB_DATA_DIR:=/cdb}
-CDB_INSTALL_DIR=${CDB_INSTALL_DIR:=$CDB_ROOT_DIR/..}
 CDB_ETC_DIR=${CDB_INSTALL_DIR}/etc
 CDB_SSL_DIR=${CDB_ETC_DIR}/ssl
 CDB_CA_DIR=${CDB_ETC_DIR}/CA

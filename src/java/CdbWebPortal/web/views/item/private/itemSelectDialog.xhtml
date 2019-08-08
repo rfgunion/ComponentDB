@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
@@ -20,6 +24,7 @@
 
     <ui:param name="renderDomainSelection" value="#{selectionController == null or selectDataModel == null}" />
     <ui:param name="selectionController" value="#{selectionController != null ? selectionController : entityController.selectionController}" />
+    <!-- Specify overrideSelectionDataModel=True and selectDataModel ui:param name="selectionValue" -->
     <ui:param name="selectDataModel" value="#{selectDataModel != null ? selectDataModel : selectionController.selectDataModel}" />
     <ui:param name="selectOneItemSelectionDomainList" 
               value="#{selectOneItemSelectionDomainList != null ? selectOneItemSelectionDomainValue : entityController.itemElementItemSelectionDomainList}" />
@@ -64,6 +69,7 @@
             <f:facet name="footer" class="dialog">
 
                 <p:commandButton value="Done" alt="Done" 
+                                 id="#{entityTypeName}ItemSelectDialogDoneButton"
                                  icon="ui-icon-arrowreturnthick-1-w"
                                  oncomplete="#{selectionRemoteComandName}();">
 

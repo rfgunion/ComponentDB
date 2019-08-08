@@ -1,4 +1,8 @@
 <?xml version='1.0' encoding='UTF-8' ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
@@ -8,7 +12,7 @@
 
     <f:metadata>
         <f:viewAction action="#{settingController.updateGlobalSettings()}" />
-        <f:event type="preRenderComponent" listener="#{searchController.updateSettings()}"/>
+        <f:viewAction action="#{searchController.updateSettingsAction()}"/>
     </f:metadata>
 
     <ui:composition template="../../templates/contentViewTemplate.xhtml">
@@ -22,7 +26,9 @@
 
 
                 <h:form id="searchForm">
-                    <p:growl id="messages" showDetail="true" autoUpdate="true"/>
+                    <p:growl id="messages" showDetail="true">
+                        <p:autoUpdate/>
+                    </p:growl>
                     <p:panelGrid columns="3" styleClass="editEntityDetails">
                         <h:outputLabel for="searchString" value="Search String" styleClass="entityDataLabel"/>
                         <h:inputText id="searchString" value="#{searchController.searchString}" title="Search String" styleClass="entityDataText"/>
@@ -43,27 +49,27 @@
 
                     <p/>
                     <div class="actionButton">
-                        <p:commandButton id="searchButton" onclick="performSearch()"  value="Search" alt="Search" icon="ui-icon-search"/>
+                        <p:commandButton id="searchButton" onclick="prepareSearch()"  value="Search" alt="Search" icon="ui-icon-search"/>
                         <p:defaultCommand target="searchButton"/>
                         
-                        <p:remoteCommand name="performSearch"
+                         <p:remoteCommand name="prepareSearch"
                                          autoRun="#{searchController.performExternallyInitializedSearch}"
+                                         update="@form"
+                                         action="#{searchController.prepareSearch()}"
+                                         oncomplete="performSearch()" />
+                        
+                        <p:remoteCommand name="performSearch"                                         
                                          update="@form"
                                          action="#{searchController.search()}"
                                          oncomplete="completeSearch()" />
 
                         <p:remoteCommand name="completeSearch"
-                                         action="#{searchController.completeSearch()}"
-                                         />
+                                         action="#{searchController.completeSearch()}" />
                     </div>
 
 
                     <ui:fragment>
-                        <ui:param name="breadcrumb" value="#{searchController.currentViewId}"/>
-                        <ui:param name="searchString" value="#{searchController.searchString}"/>
-                        <ui:param name="caseInsensitive" value="#{searchController.caseInsensitive}"/>
-
-                        <ui:include src="private/searchPerformSearch.xhtml" />
+                        <ui:include src="private/searchRegisterSearchableController.xhtml" />
                     </ui:fragment>
 
                     <p/>
