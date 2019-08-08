@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="../../common/private/commonChildListActionButtons.xhtml">
+
+    <ui:define name="variables">
+        <!-- showAddButton param specifies if a simple assambly item should be shown --> 
+        <ui:param name="showAddButton" value="#{showAddButton != null ? showAddButton : true}" />
+
+        <ui:param name="parentEntityController" value="#{entityController}"/>
+        <ui:param name="listCustomizeOnStartCommand" value="itemElementCustomizeOnStartCommand()" />
+        <ui:param name="isParentEntityWriteable" value="#{loginController.isEntityWriteable(itemObject.entityInfo)}"/>
+        <ui:param name="childEntityTypeName" value="#{childEntityController.entityTypeName}"/>
+        <ui:param name="onCompleteAddButtonCommand" value="#{showAddButton ? 'showAddNewAssemblyItemDialog()' : null}" /> 
+    </ui:define>
+    
+    <ui:define name="additionalButtons">        
+            <p:commandButton value="Save New Order"
+                             icon="fa fa-floppy-o"
+                             update="@form"
+                             action="#{itemElementController.performReorderSaveOperations()}" 
+                             onclick="PF('loadingDialog').show()"
+                             oncomplete="PF('loadingDialog').hide()"
+                             rendered="#{isEntityWriteable and itemElementController.hasReorderChanges}"/>        
+    </ui:define>
+    
+
+    <ui:define name="additionalContent">
+        <ui:include src="#{showAddButton ? 'itemElementAddNewAssemblyItemDialog.xhtml' : '../../common/private/commonEmptyPage.xhtml' }" />
+
+        <p:remoteCommand name="itemElementCustomizeOnStartCommand"
+                         action="#{itemElementController.setCurrentSettingsItemController(currentItemController)}"/>
+    </ui:define>
+
+</ui:composition>
+
+

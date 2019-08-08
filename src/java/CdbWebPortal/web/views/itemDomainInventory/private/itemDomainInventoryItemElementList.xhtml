@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../../itemElement/private/templates/itemElementListTemplate.xhtml">
+
+    <ui:param name="renderEditButton" value="#{isEntityWriteable and entityController.displayBOMEditButton()}"/>
+    <ui:param name="itemListDisplayDerivedFromItem"
+                  value="#{false}"/>
+
+    <ui:define name="listActionButtons">
+        <ui:include src="../../itemElement/private/itemElementListActionButtons.xhtml">
+            <ui:param name="onCompleteEditButtonCommand" value="prepareEditInventoryItem()" />            
+            <ui:param name="displayEditButton" value="#{renderEditButton}" />  
+            <ui:param name="showAddButton" value="#{false}" />
+        </ui:include>
+    </ui:define>
+    <ui:define name="treeListActionButtons" >
+        <ui:include src="../../itemElement/private/itemElementTreeListActionButtons.xhtml">
+            <ui:param name="displayEditButton" value="#{renderEditButton}" />  
+            <ui:param name="onCompleteEditButtonCommand" value="prepareEditInventoryItem()" />
+        </ui:include>
+    </ui:define>
+    
+    <ui:param name="redneredIsRequired" value="#{false}" />
+
+    <!-- simple view list object overrides --> 
+    <ui:define name="customItemIdentifierColumn">
+        <ui:include src="itemDomainInventoryListCustomIdentifierObject.xhtml" >
+            <ui:param name="partNameString"
+                      value="#{itemListObject != null 
+                               ? itemDomainInventoryController.getItemDisplayString(itemListObject) 
+                               : itemDomainInventoryController.getInventoryItemElementDisplayString(itemElementObject)}" />
+        </ui:include>
+    </ui:define>
+    <ui:define name="nameColumn"/>
+
+</ui:composition>
+
+

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                template="itemElementListObjectTemplateBase.xhtml">    
+    
+    <ui:param name="rendered" value="#{rendered != null ? rendered : true}" />
+    <ui:param name="itemElementSettingObject" value="#{itemElementController.settingObject}"/> 
+    <ui:param name="currentItemSettingObject" value="#{currentItemController.settingObject}" />
+
+    <ui:define name="idColumn">
+        <p:column sortBy="#{itemElementObject.id}" headerText="Id"
+                  filterBy="#{itemElementObject.id}" filterMatchMode="contains"
+                  filterValue="#{itemElementSettingObject.filterById}"
+                  filterable="#{filterable}"
+                  sortable="#{sortable}"
+                  rendered="#{rendered and itemElementSettingObject.displayId}" >
+            <h:outputText value="#{itemElementObject.id}" />
+        </p:column>
+    </ui:define>
+
+    <ui:define name="nameColumn" >
+        <p:column sortBy="#{itemElementObject.name}" headerText="Element Name"
+                  filterBy="#{itemElementObject.name}" filterMatchMode="contains"
+                  filterValue="#{itemElementSettingObject.filterByName}"
+                  filterable="#{filterable}"
+                  sortable="#{sortable}" 
+                  rendered="#{rendered}">
+            <h:outputText value="#{itemElementObject.name}" />
+        </p:column>
+    </ui:define>
+
+    <ui:define name="containedItemColumn">                
+        <p:column headerText="Contained Item"
+                  filterBy="#{itemElementObject.containedItem.name}"
+                  sortBy="#{itemElementObject.containedItem.name}"
+                  sortable="#{sortable}"
+                  filterable="#{filterable}"
+                  rendered="#{rendered}">
+            <h:outputText value="#{currentItemController.getItemElementContainedItemText(itemElementObject)}" />
+        </p:column>
+        
+        <ui:param name="containedItemItemIdentifier1"
+                  value="#{itemElementObject.containedItem.itemIdentifier1}" /> 
+        
+        <p:column id="containedItemItemIdentifier1"
+                  rendered="#{rendered and currentItemController.entityDisplayItemIdentifier1 and currentItemSettingObject.displayItemElementListItemIdentifier1}"
+                  headerText="#{currentItemController.itemIdentifier1Title}" 
+                  sortable="#{sortable}"
+                  filterable="#{filterable}"
+                  sortBy="#{containedItemItemIdentifier1}"
+                  filterBy="#{containedItemItemIdentifier1}">
+            <h:outputText value="#{containedItemItemIdentifier1}" />
+        </p:column>
+    </ui:define>        
+
+    <ui:define name="isRequiredColumn">
+        <ui:include src="../templateDefaults/itemElementObject/itemElementIsRequiredColumn.xhtml" />
+    </ui:define>
+
+    <ui:define name="descriptionColumn" > 
+        <p:column sortBy="#{itemElementObject.description}" headerText="Description" 
+                  filterBy="#{itemElementObject.description}" filterMatchMode="contains"
+                  filterValue="#{itemElementSettingObject.filterByDescription}"
+                  filterable="#{filterable}"
+                  sortable="#{sortable}"
+                  rendered="#{rendered and itemElementSettingObject.displayDescription}">
+            <h:outputText value="#{itemElementObject.description}"/>
+        </p:column>
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) UChicago Argonne, LLC. All rights reserved.
+ * See LICENSE file.
+ */
+package gov.anl.aps.cdb.portal.constants;
+
+public enum PortalStyles {
+    favoritesOn("favoriteOn"),
+    favoritesOff("favoriteOff"),
+    
+    rowStyleErrorInEntity("errorItemInRow"), 
+    rowStyleNewEntity("newItemInRow"),
+    
+    machineDesignIcon("ui-icon-machine-design"),
+    catalogIcon("ui-icon-catalog"),
+    inventoryIcon("ui-icon-inventory"),
+    maarcIcon("ui-icon-maarc");
+
+    private String value;
+
+    private PortalStyles(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+};

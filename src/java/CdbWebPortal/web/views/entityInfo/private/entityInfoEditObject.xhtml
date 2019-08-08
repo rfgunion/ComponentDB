@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <h:outputLabel for="ownerUser#{viewName}" value="Owner User" styleClass="entityDataLabel"/>
+    <p:column>
+        <ui:include src="templateDefaults/entityInfoFieldEditValues/ownerUser.xhtml" />
+    </p:column>
+
+    <p:outputPanel rendered="#{renderHelpFragments}">
+        <p class="triangle-isosceles left">
+            The owner of the item will have the ability to edit. 
+        </p>
+    </p:outputPanel>
+
+    <h:outputLabel for="ownerGroup#{viewName}" value="Owner Group" styleClass="entityDataLabel"/>
+    <p:column>
+        <ui:include src="templateDefaults/entityInfoFieldEditValues/ownerGroup.xhtml" />
+    </p:column>
+    
+    <p:outputPanel rendered="#{renderHelpFragments}">
+        <p class="triangle-isosceles left">
+            The owner group is the assigned group to the item. If it is group write-able the group will be able to edit the item. 
+        </p>
+    </p:outputPanel>
+    
+    <h:outputLabel for="groupWriteable#{viewName}" value="Group Writeable" styleClass="entityDataLabel"/>
+    <p:column>
+        <ui:include src="templateDefaults/entityInfoFieldEditValues/groupWriteable.xhtml"/>
+    </p:column>
+    
+    <p:outputPanel rendered="#{renderHelpFragments}">
+        <p class="triangle-isosceles left">
+            Should the assigned group have the ability to edit? 
+        </p>
+    </p:outputPanel>             
+    
+</ui:composition>
+
+

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <p:dialog id="propertyValueMetadataListDialog" 
+              widgetVar="propertyValueMetadataListDialogWidget" 
+              header="Property Value Metadata"
+              modal="true"              
+              resizable="false"
+              styleClass="viewTransparentBackgroundDialog">
+        
+        <ui:param name="propertyValueBaseObject" value="#{propertyMetadataController.currentMetadataShown}"/>
+
+        <p:outputPanel rendered="#{propertyValueBaseObject != null}">
+            <ui:param name="filterablePropertyValueMetadataList"
+                      value="#{facesUtility.displayFiltersForList(propertyValueBaseObject.propertyMetadataBaseList, 10)}" />
+            
+            <p:scrollPanel style="max-height: 550px"
+                           mode="native"
+                           rendered="#{propertyValueController.displayShowMetadataForPropertyValue(propertyValueBaseObject)}">
+                <p:dataTable id="#{entityTypeName}PropertyValueMetadataListDataTable"
+                             value="#{propertyValueBaseObject.propertyMetadataBaseList}"                     
+                             var="metadata">
+                    <p:column headerText="Key"
+                              filterBy="#{metadata.metadataKey}"
+                              filterable="#{filterablePropertyValueMetadataList}"
+                              sortable="true"
+                              filterMatchMode="contains">
+                        <h:outputText value="#{metadata.metadataKey}"/>
+                    </p:column>
+                    <p:column headerText="Value"
+                              filterBy="#{metadata.metadataValue}"
+                              filterable="#{filterablePropertyValueMetadataList}"
+                              sortable="true"
+                              filterMatchMode="contains">
+                        <h:outputText value="#{metadata.metadataValue}" />
+                    </p:column>
+                </p:dataTable>
+            </p:scrollPanel>
+        </p:outputPanel>
+
+        <f:facet name="footer" class="dialog">
+            <p:commandButton id="propertyValueMetadataDoneButton" value="Done" alt="Done" 
+                             onstart="PF('propertyValueMetadataListDialogWidget').hide()" 
+                             icon="fa fa-times"/>
+            <p:tooltip for="propertyValueMetadataDoneButton" value="Close property value metadata display."/>
+        </f:facet>
+    </p:dialog>
+
+</ui:composition>
+

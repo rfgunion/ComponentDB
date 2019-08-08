@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:param name="executeOnlyAddButtonOnComplete" value="#{addActionController == null}" />    
+    <ui:param name="childEntityListDataTableId" value="#{childEntityTypeName}EditListDataTable" />
+    
+    <ui:param name="customizableListDataTable" value="#{customizableListDataTable != null 
+                                                        ? customizableListDataTable : true}" />
+    
+    <div class="actionButton">
+        <p:commandButton id="#{childEntityTypeName}EditListAddButtonOnlyOnComplete"
+                         rendered="#{executeOnlyAddButtonOnComplete and displayAddButton}"
+                         oncomplete="#{addActionOnComplete}" value="Add" alt="Add" icon="fa fa-plus" update="@form">
+            <p:tooltip for="#{childEntityTypeName}EditListAddButton" value="Add new #{childEntityController.displayEntityTypeName}."/>
+        </p:commandButton>
+        <p:commandButton id="#{childEntityTypeName}EditListAddButton"
+                         rendered="#{!executeOnlyAddButtonOnComplete and displayAddButton}"
+                         action="#{addActionController[addAction](addActionParameter)}" 
+                         oncomplete="#{addActionOnComplete}" value="Add" alt="Add" icon="fa fa-plus" update="@form">
+            <p:tooltip for="#{childEntityTypeName}EditListAddButton" value="Add new #{childEntityController.displayEntityTypeName}."/>
+        </p:commandButton>
+        <p:commandButton id="#{childEntityTypeName}EditListSaveButton" action="#{parentEntityController[saveAction]}" 
+                         ajax="false" value="Save" alt="Save List" icon="fa fa-check">
+            <p:tooltip for="#{childEntityTypeName}EditListSaveButton" value="Save list."/>
+        </p:commandButton>
+        
+        <p:commandButton id="#{childEntityTypeName}SortOrderButton" rendered="#{childEntityController.displayUpdateSortOrderButton}"
+                         value="Rearrange" icon="fa fa-sort"
+                         oncomplete="setSortableEntityList();">
+            <p:tooltip for="#{childEntityTypeName}SortOrderButton" value="Sort list or change order of items in the list"/>
+        </p:commandButton>
+        
+        <ui:insert name="additionalButtons" />
+       
+        <ui:include src="reusedParts/childListExportButtons.xhtml" />
+       
+        <p:commandButton id="#{childEntityTypeName}EditListCustomizeDisplayButton" 
+                         oncomplete="PF('#{childEntityTypeName}EditListCustomizeDisplayDialogWidget').show()" 
+                         alt="Customize Edit List" 
+                         styleClass="actionButtonRight" 
+                         update="@form" 
+                         rendered="#{customizableListDataTable}"
+                         icon="fa fa-wrench">
+            <p:tooltip for="#{childEntityTypeName}EditListCustomizeDisplayButton" value="Customize view."/>
+        </p:commandButton>
+        <p:commandButton id="#{childEntityTypeName}EditListResetFiltersButton" action="#{childEntityController.resetListForEdit}" alt="Clear Filters" icon="fa fa-refresh" styleClass="actionButtonRight">
+            <p:tooltip for="#{childEntityTypeName}EditListResetFiltersButton" value="Reset filters."/>
+        </p:commandButton>
+
+        <p:commandButton id="#{childEntityTypeName}EditListNoOp" style="visibility:hidden" value="NoOp"/>
+        <p:defaultCommand target="#{childEntityTypeName}EditListNoOp"/>
+    </div>
+
+</ui:composition>

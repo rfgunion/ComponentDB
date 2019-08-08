@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    
+    <p:column id="itemType#{viewName}"
+              rendered="#{entityController.entityDisplayItemType}">
+        
+        <ui:param name="defaultItemItemTypeUpdateTarget"
+                  value="itemTypeSelectCB#{viewName}" />
+        
+        <ui:param name="itemItemTypeUpdateTarget"
+                  value="#{itemItemTypeUpdateTarget != null 
+                           ? itemItemTypeUpdateTarget 
+                           : defaultItemItemTypeUpdateTarget}"/>
+        
+        <ui:include src="editWidgets/itemItemTypeSelectCheckboxMenu.xhtml">
+            <ui:param name="onHide"
+                      value="itemTypeSelectCBUpdate#{viewName}()"/>
+        </ui:include>
+        
+        
+        <p:remoteCommand name="itemTypeSelectCBUpdate#{viewName}"
+                         onstart="PF('loadingDialog').show()"
+                         update="#{itemItemTypeUpdateTarget}"
+                         oncomplete="PF('loadingDialog').hide()"/>
+    </p:column>
+
+</ui:composition>

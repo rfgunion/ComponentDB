@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+Copyright (c) UChicago Argonne, LLC. All rights reserved.
+See LICENSE file.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+
+    <ui:param name="propertyTypeObject" value="#{propertyTypeController.selected}"/>
+
+    <p:panelGrid columns="4" style="editEntityDetails">
+        
+        <h:outputLabel for="id" value="Id" styleClass="entityDataLabel"/>
+        <h:outputText id="id" value="#{propertyTypeObject.id}" title="Id" styleClass="entityDataText"/>
+        <p:message for="id"/> 
+        <p:tooltip for="id" value="Property type id cannot be modified."/>
+        
+        <ui:include src="propertyTypeEditObject.xhtml" />
+       
+    </p:panelGrid>
+
+</ui:composition>
+
+
